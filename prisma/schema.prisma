@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  name               String
+  password           String
+  image              String?
+  role               UserRole             @default(USER)
+  sessions           Session[]
+  createdAt          DateTime             @default(now())
+  registrations      Registration[]
+  resetPasswordToken ResetPasswordToken[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model ResetPasswordToken {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id             String         @id @default(uuid())
+  name           String
+  date           DateTime
+  startTime      DateTime
+  endTime        DateTime
+  peopleRequired Int
+  totalTip       Int?
+  createdAt      DateTime       @default(now())
+  registrations  Registration[]
+}
+
+model Registration {
+  id               String             @id @default(uuid())
+  eventId          String
+  userId           String
+  status           RegistrationStatus @default(REGISTERED)
+  cancelReason     String?
+  cancelApprovedBy String?
+  helpsSetup       Boolean            @default(false)
+  helpsTeardown    Boolean            @default(false)
+  event            Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime           @default(now())
+  shift            Shift?
+}
+
+model Shift {
+  id             String    @id @default(uuid())
+  registrationId String    @unique
+  clockIn        DateTime?
+  clockInLat     Float?
+  clockInLon     Float?
+  clockOut       DateTime?
+  clockOutLat    Float?
+  clockOutLon    Float?
+  receivesTip    Boolean   @default(true)
+
+  registration  Registration        @relation(fields: [registrationId], references: [id])
+  changeRequest ShiftChangeRequest?
+}
+
+model ShiftChangeRequest {
+  id               String              @id @default(uuid())
+  shiftId          String              @unique
+  clockIn          DateTime?
+  clockOut         DateTime?
+  status           ChangeRequestStatus @default(PENDING)
+  changeApprovedBy String?
+  shift            Shift               @relation(fields: [shiftId], references: [id])
+}
+
+model UserInvite {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  invitedBy String
+  createdAt DateTime @default(now())
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CANCEL_REQUESTED
+  CANCELLED
+}
+
+enum ChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
