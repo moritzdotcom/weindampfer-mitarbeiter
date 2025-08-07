@@ -11,6 +11,7 @@ import {
   isCurrentEvent,
   hasOngoingShift,
   formatEventTime,
+  eventSortFn,
 } from '@/lib/event';
 import UpcomingEventCard from '@/components/events/cardUpcoming';
 import { ApiPostRegistrationResponse } from './api/registrations';
@@ -179,7 +180,7 @@ export default function Home({ session }: { session: Session }) {
             {registeredEvents.length > 0 && (
               <div className="flex flex-col gap-4">
                 <Divider>Meine Veranstaltungen</Divider>
-                {registeredEvents.map((event) => (
+                {registeredEvents.sort(eventSortFn).map((event) => (
                   <RegisteredEventCard
                     key={event.id}
                     event={event}
@@ -193,7 +194,7 @@ export default function Home({ session }: { session: Session }) {
             {upcomingEvents.length > 0 && (
               <div className="flex flex-col gap-4">
                 <Divider>Zukünftige Veranstaltungen</Divider>
-                {upcomingEvents.map((event) => (
+                {upcomingEvents.sort(eventSortFn).map((event) => (
                   <UpcomingEventCard
                     key={event.id}
                     event={event}

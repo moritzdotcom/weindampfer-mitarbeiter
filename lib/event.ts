@@ -56,3 +56,9 @@ export const hasOngoingShift = (event: EventType, userId: string) =>
   event.registrations.some(
     (r) => r.userId === userId && r.shift?.clockIn && !r.shift?.clockOut
   );
+
+type SimpleEvent = { date: Date | string };
+
+export function eventSortFn(a: SimpleEvent, b: SimpleEvent) {
+  return new Date(a.date).getTime() - new Date(b.date).getTime();
+}
