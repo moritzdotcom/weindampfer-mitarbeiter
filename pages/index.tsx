@@ -179,7 +179,7 @@ export default function Home({ session }: { session: Session }) {
 
             {registeredEvents.length > 0 && (
               <div className="flex flex-col gap-4">
-                <Divider>Meine Veranstaltungen</Divider>
+                <Divider>Deine Veranstaltungen</Divider>
                 {registeredEvents.sort(eventSortFn).map((event) => (
                   <RegisteredEventCard
                     key={event.id}
