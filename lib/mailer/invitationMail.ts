@@ -9,7 +9,7 @@ export default function sendInvitationMail(
     to: email,
     sendCopy: true,
     subject: 'Wilkommen an Bord des Weindampfers!',
-    text: `Hallo ${name}, Du wurdest eingeladen, dem Weindampfer Schichtplan beizutreten. Bitte registriere dich über den folgenden Link: ${process.env.PUBLIC_URL}auth/signup?inviteId=${inviteId}`,
+    text: `Hallo, Du wurdest von ${name} eingeladen, dem Weindampfer Schichtplan beizutreten. Bitte registriere dich über den folgenden Link: ${process.env.PUBLIC_URL}auth/signup?inviteId=${inviteId}`,
     html: `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -40,8 +40,8 @@ export default function sendInvitationMail(
           <tr>
             <td style="padding:0 20px;">
               <div style="background-color:#f0f0f0; padding:20px; border-radius:5px; color:#333333; font-size:16px; line-height:1.5;">
-                <p>Hallo <strong>${name}</strong>,</p>
-                <p>Du wurdest eingeladen, dem Weindampfer Schichtplan beizutreten. Bitte registriere dich über den folgenden Link:</p>
+                <p>Hallo,</p>
+                <p>Du wurdest von ${name} eingeladen, dem Weindampfer Schichtplan beizutreten. Bitte registriere dich über den folgenden Link:</p>
               </div>
             </td>
           </tr>
