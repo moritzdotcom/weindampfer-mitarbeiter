@@ -2,6 +2,7 @@ import { getServerSession } from '@/lib/session';
 import prisma from '@/lib/prismadb';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Prisma } from '@/generated/prisma';
+import { startOfYesterday } from 'date-fns';
 
 export default async function handle(
   req: NextApiRequest,
@@ -58,7 +59,10 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse) {
   });
 
   const registrationCancelRequests = await prisma.registration.findMany({
-    where: { status: 'CANCEL_REQUESTED' },
+    where: {
+      status: 'CANCEL_REQUESTED',
+      event: { date: { gte: startOfYesterday() } },
+    },
     select: { id: true, event: true, user: true, cancelReason: true },
   });
 

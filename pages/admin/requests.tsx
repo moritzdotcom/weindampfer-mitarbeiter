@@ -155,9 +155,8 @@ function RegistrationRequestCard({
           >
             {registration.user.name}
           </Link>
-          <p className="text-gray-300 mb-2">
-            {fullEventName(registration.event)}
-          </p>
+          <p className="text-gray-300">{fullEventName(registration.event)}</p>
+          <p className="text-gray-300 italic">{registration.cancelReason}</p>
         </div>
         <div className="flex items-center justify-evenly gap-3">
           <Tooltip title="Absage akzeptieren">
