@@ -2,6 +2,8 @@ import { getServerSession } from '@/lib/session';
 import prisma from '@/lib/prismadb';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Prisma } from '@/generated/prisma';
+import sendCancelRequestMail from '@/lib/mailer/cancelRequestMail';
+import { format } from 'date-fns';
 
 export default async function handle(
   req: NextApiRequest,
@@ -46,11 +48,20 @@ async function handlePOST(
       status: 'CANCEL_REQUESTED',
     },
     include: {
+      event: { select: { name: true, date: true } },
       shift: true,
       user: {
         select: { id: true, name: true, image: true },
       },
     },
   });
+
+  await sendCancelRequestMail(
+    registration.event.name,
+    format(new Date(registration.event.date), 'dd.MM.yyyy'),
+    registration.user.name,
+    reason
+  );
+
   return res.status(201).json(registration);
 }
