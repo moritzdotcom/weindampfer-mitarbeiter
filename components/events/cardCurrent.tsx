@@ -132,7 +132,7 @@ export default function CurrentEventCard({
 
   return (
     <EventCardAnimationWrapper>
-      <div className="bg-gray-900 p-5 rounded-2xl text-white">
+      <div className="bg-neutral-900 p-5 rounded-2xl text-white">
         <h3 className="text-2xl font-light font-cocogoose mb-2 text-center">
           {event.name}
         </h3>

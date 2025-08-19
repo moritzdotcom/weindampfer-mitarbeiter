@@ -13,11 +13,13 @@ export default function AdminPage({ session }: { session: Session }) {
   return (
     <div className="w-full max-w-2xl mx-auto px-3 mt-10 mb-5 flex flex-col gap-7">
       <div>
-        <img
-          src="/logo-white.png"
-          alt="WEINDAMPFER"
-          className="w-64 mx-auto mb-6"
-        />
+        <Link href="/">
+          <img
+            src="/logo-white.png"
+            alt="WEINDAMPFER"
+            className="w-64 mx-auto mb-6"
+          />
+        </Link>
         <h2 className="text-2xl text-center font-light font-cocogoose">
           Admin
         </h2>

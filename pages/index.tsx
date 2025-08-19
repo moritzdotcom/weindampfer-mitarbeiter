@@ -140,7 +140,7 @@ export default function Home({ session }: { session: Session }) {
       <HtmlHead />
       {session?.user?.role === 'ADMIN' && (
         <a
-          className="block w-full px-4 py-2 text-center bg-gray-900 text-white"
+          className="block w-full px-4 py-2 text-center bg-neutral-900 text-white"
           href="/admin"
         >
           Zum Admin Dashboard
