@@ -129,7 +129,10 @@ export default function AdminEventPage({
   const handleSaveTip = async () => {
     try {
       setLoading(true);
-      await axios.put(`/api/event/${eventId}`, { totalTip });
+      await axios.put(`/api/events/${eventId}`, { totalTip: Number(totalTip) });
+      setEvent((prev) =>
+        prev ? { ...prev, totalTip: Number(totalTip) } : undefined
+      );
     } catch (error) {
       showError('Speichern fehlgeschlagen');
     } finally {
@@ -185,6 +188,7 @@ export default function AdminEventPage({
             fullWidth
             onClick={handleSaveTip}
             loading={loading}
+            disabled={Number(event.totalTip) == Number(totalTip)}
             sx={{ mt: 2 }}
           >
             Speichern
