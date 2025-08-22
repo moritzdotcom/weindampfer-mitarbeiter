@@ -1,22 +1,10 @@
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Checkbox,
-  FormControlLabel,
-  Button,
-  AvatarGroup,
-  Avatar,
-  DialogActions,
-} from '@mui/material';
+import { Button, AvatarGroup, Avatar } from '@mui/material';
 import { formatEventDate, formatEventTime } from '@/lib/event';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import DialogTransition from '../dialogs/transition';
-import axios from 'axios';
-import { showError, showSuccess } from '@/lib/toast';
 import { ApiPostRegistrationResponse } from '@/pages/api/registrations';
+import RegisterDialog from '../dialogs/registerDialog';
 
 type UpcomingEventCardProps = {
   event: {
@@ -37,31 +25,6 @@ export default function UpcomingEventCard({
   onRegister,
 }: UpcomingEventCardProps) {
   const [open, setOpen] = useState(false);
-  const [helpsSetup, setHelpsSetup] = useState(false);
-  const [helpsTeardown, setHelpsTeardown] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const { data } = await axios.post<ApiPostRegistrationResponse>(
-        '/api/registrations',
-        {
-          eventId: event.id,
-          helpsSetup,
-          helpsTeardown,
-        }
-      );
-      showSuccess('Erfolgreich für das Event eingetragen');
-      onRegister(data);
-    } catch (error) {
-      console.error('Error registering for event:', error);
-      showError('Fehler beim Eintragen für das Event');
-    } finally {
-      setLoading(false);
-      setOpen(false);
-    }
-  };
 
   return (
     <div className="bg-neutral-900 p-5 rounded-2xl shadow-md text-white">
@@ -113,51 +76,12 @@ export default function UpcomingEventCard({
         Für Event eintragen
       </Button>
 
-      <Dialog
-        slots={{ transition: DialogTransition }}
+      <RegisterDialog
         open={open}
         onClose={() => setOpen(false)}
-        fullWidth
-      >
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 600 }}>
-          Für Event eintragen
-        </DialogTitle>
-        <DialogContent>
-          <div className="flex flex-col gap-4 mt-2 mb-4">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={helpsSetup}
-                  onChange={(e) => setHelpsSetup(e.target.checked)}
-                />
-              }
-              label="Ich helfe beim Aufbau"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={helpsTeardown}
-                  onChange={(e) => setHelpsTeardown(e.target.checked)}
-                />
-              }
-              label="Ich helfe beim Abbau"
-            />
-          </div>
-          <DialogActions>
-            <Button fullWidth onClick={() => setOpen(false)}>
-              Abbrechen
-            </Button>
-            <Button
-              loading={loading}
-              variant="contained"
-              fullWidth
-              onClick={handleSubmit}
-            >
-              Verbindlich eintragen
-            </Button>
-          </DialogActions>
-        </DialogContent>
-      </Dialog>
+        eventId={event.id}
+        onRegister={onRegister}
+      />
     </div>
   );
 }
