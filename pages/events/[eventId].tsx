@@ -12,6 +12,7 @@ import { ApiGetEventResponse } from '../api/events/[eventId]';
 import RegisterDialog from '@/components/dialogs/registerDialog';
 import { ApiPostRegistrationResponse } from '../api/registrations';
 import HtmlHead from '@/components/head';
+import prisma from '@/lib/prismadb';
 
 export default function EventPage({
   session,
@@ -175,7 +176,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const event = await prisma?.event.findFirst({
+  const event = await prisma.event.findFirst({
     where: { id: eventId as string },
     select: { name: true },
   });
