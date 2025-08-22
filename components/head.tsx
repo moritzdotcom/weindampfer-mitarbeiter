@@ -1,10 +1,18 @@
 import Head from 'next/head';
 
-export default function HtmlHead() {
+export default function HtmlHead({
+  title,
+  description,
+}: {
+  title?: string;
+  description?: string;
+}) {
+  if (!title) title = 'KM Team';
+  if (!description) description = 'Schichtplan für alle KM Events';
   return (
     <Head>
-      <title>Weindampfer Schichtplan</title>
-      <meta name="description" content="Schichtplan für den Weindampfer" />
+      <title>{title}</title>
+      <meta name="description" content={description} />
       <link rel="shortcut icon" href="/favicon.ico" />
       <link rel="icon" href="/favicon.ico" />
       <link rel="apple-touch-icon" href="/favicon.png" />
@@ -78,32 +86,26 @@ export default function HtmlHead() {
         href="/icons/favicon-192x192.png"
       />
 
-      <link rel="canonical" href="https://team.derweindampfer.de/" />
+      <link rel="canonical" href="https://team.km-entertainment.de/" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta
         name="twitter:image"
-        content={encodeURI('https://team.derweindampfer.de/logo-og.jpg')}
+        content={encodeURI('https://team.km-entertainment.de/logo-og.jpg')}
       />
-      <meta name="twitter:url" content="https://team.derweindampfer.de/" />
-      <meta name="twitter:title" content="Weindampfer Schichtplan" />
-      <meta
-        name="twitter:description"
-        content="Schichtplan für den Weindampfer"
-      />
+      <meta name="twitter:url" content="https://team.km-entertainment.de/" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
 
       <meta property="og:type" content="website" />
       <meta
         property="og:image"
-        content={encodeURI('https://team.derweindampfer.de/logo-og.jpg')}
+        content={encodeURI('https://team.km-entertainment.de/logo-og.jpg')}
       />
-      <meta property="og:title" content="Weindampfer Schichtplan" />
-      <meta
-        property="og:description"
-        content="Schichtplan für den Weindampfer"
-      />
-      <meta property="og:site_name" content="Weindampfer Schichtplan" />
-      <meta property="og:url" content="https://team.derweindampfer.de/" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:site_name" content={title} />
+      <meta property="og:url" content="https://team.km-entertainment.de/" />
     </Head>
   );
 }

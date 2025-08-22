@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowBackIos } from '@mui/icons-material';
 import { Session } from '@/hooks/useSession';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import axios from 'axios';
 import { Avatar, Button, CircularProgress, Divider } from '@mui/material';
 import { GetServerSidePropsContext } from 'next';
@@ -12,15 +11,17 @@ import { formatEventDate, formatEventTime } from '@/lib/event';
 import { ApiGetEventResponse } from '../api/events/[eventId]';
 import RegisterDialog from '@/components/dialogs/registerDialog';
 import { ApiPostRegistrationResponse } from '../api/registrations';
+import HtmlHead from '@/components/head';
 
-export default function RegistrationPage({
+export default function EventPage({
   session,
   eventId,
+  eventName,
 }: {
   session: Session;
   eventId: string;
+  eventName: string;
 }) {
-  useAuthGuard(session);
   const [event, setEvent] = useState<ApiGetEventResponse>();
   const [open, setOpen] = useState(false);
 
@@ -50,6 +51,10 @@ export default function RegistrationPage({
 
   return (
     <div className="max-w-3xl mx-auto p-6 text-white">
+      <HtmlHead
+        title={eventName}
+        description={`Jetzt für "${eventName}" anmelden`}
+      />
       <Link
         className="text-white text-lg py-2 inline-flex items-center"
         href="/"
@@ -122,7 +127,7 @@ export default function RegistrationPage({
                 );
               })}
           </div>
-          {!registration && (
+          {!registration && session.status == 'authenticated' && (
             <div className="mt-6 text-center">
               <p className="text-gray-400">
                 Du bist noch nicht für dieses Event registriert.
@@ -170,5 +175,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  return { props: { eventId } };
+  const event = await prisma?.event.findFirst({
+    where: { id: eventId as string },
+    select: { name: true },
+  });
+
+  if (!event) {
+    return {
+      notFound: true,
+    };
+  }
+  return { props: { eventId, eventName: event?.name } };
 }

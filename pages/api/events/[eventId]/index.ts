@@ -1,15 +1,11 @@
 import { Prisma } from '@/generated/prisma';
 import prisma from '@/lib/prismadb';
-import { getServerSession } from '@/lib/session';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req);
-  if (!session) return res.status(401).json('Not authenticated');
-
   const { eventId } = req.query;
   if (typeof eventId !== 'string')
     return res.status(400).json('Event ID is required');
