@@ -8,6 +8,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { ApiPostInviteSendMailResponse } from '@/pages/api/invites/[inviteId]/sendMail';
 import { showError, showSuccess } from '@/lib/toast';
+import useCopy from '@/hooks/useCopy';
 
 export default function AdminInviteCard({
   invite,
@@ -68,43 +69,17 @@ function SendInviteButton({ id }: { id: string }) {
 }
 
 function CopyInviteLinkButton({ id }: { id: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (typeof window === 'undefined' || !navigator?.clipboard) return;
-    const link = `${window.location.origin}/auth/signup?inviteId=${id}`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Weindampfer Einladungslink',
-          url: link,
-        });
-        showSuccess('Link geteilt!');
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(link);
-        setCopied(true);
-        showSuccess('Einladungslink kopiert!');
-        setTimeout(() => setCopied(false), 4000);
-      } else {
-        showError('Teilen nicht unterstützt.');
-      }
-    } catch (err) {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(link);
-        setCopied(true);
-        showSuccess('Einladungslink kopiert!');
-        setTimeout(() => setCopied(false), 4000);
-      } else {
-        showError('Teilen fehlgeschlagen.');
-      }
-    }
-  };
+  const { copied, handleCopy } = useCopy();
 
   return (
     <Tooltip title="Einladungslink kopieren">
       <IconButton
-        onClick={handleCopy}
+        onClick={() =>
+          handleCopy({
+            link: `${window?.location?.origin}/auth/signup?inviteId=${id}`,
+            title: 'Weindampfer Einladungslink',
+          })
+        }
         sx={{ color: copied ? 'green' : 'white' }}
       >
         {copied ? <DoneAllIcon /> : <ContentCopyIcon />}
