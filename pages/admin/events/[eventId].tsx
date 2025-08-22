@@ -21,7 +21,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Session } from '@/hooks/useSession';
 import { GetServerSidePropsContext } from 'next';
 import BackendBackButton from '@/components/backendBackButton';
-import { ApiGetEventResponse } from '@/pages/api/events/[eventId]';
+import { ApiGetEventAdminResponse } from '@/pages/api/events/[eventId]/admin';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -46,7 +46,7 @@ export default function AdminEventPage({
   eventId: string;
 }) {
   useAuthGuard(session);
-  const [event, setEvent] = useState<ApiGetEventResponse>();
+  const [event, setEvent] = useState<ApiGetEventAdminResponse>();
   const [totalTip, setTotalTip] = useState<string>();
   const [loading, setLoading] = useState(false);
   const [createRegistrationOpen, setCreateRegistrationOpen] = useState(false);
@@ -129,7 +129,9 @@ export default function AdminEventPage({
   const handleSaveTip = async () => {
     try {
       setLoading(true);
-      await axios.put(`/api/events/${eventId}`, { totalTip: Number(totalTip) });
+      await axios.put(`/api/events/${eventId}/admin`, {
+        totalTip: Number(totalTip),
+      });
       setEvent((prev) =>
         prev ? { ...prev, totalTip: Number(totalTip) } : undefined
       );
@@ -142,8 +144,8 @@ export default function AdminEventPage({
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await axios.get<ApiGetEventResponse>(
-        `/api/events/${eventId}`
+      const { data } = await axios.get<ApiGetEventAdminResponse>(
+        `/api/events/${eventId}/admin`
       );
       setEvent(data);
       setTotalTip(`${data.totalTip || ''}`);
@@ -256,7 +258,7 @@ function EventRegistrationCard({
   onToggleTip,
   onShiftCreated,
 }: {
-  registration: ApiGetEventResponse['registrations'][number];
+  registration: ApiGetEventAdminResponse['registrations'][number];
   eventDate: Date;
   tipReceived: number | null;
   onApproveChange: (

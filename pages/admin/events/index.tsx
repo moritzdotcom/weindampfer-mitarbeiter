@@ -17,12 +17,15 @@ import { formatEventDate, formatEventTime } from '@/lib/event';
 import { Edit } from '@mui/icons-material';
 import BackendBackButton from '@/components/backendBackButton';
 import { ApiGetEventsResponse } from '../../api/events';
-import { ApiPutEventResponse } from '../../api/events/[eventId]';
+import { ApiPutEventAdminResponse } from '../../api/events/[eventId]/admin';
 import { showError, showSuccess } from '@/lib/toast';
 import AddIcon from '@mui/icons-material/Add';
 import DialogTransition from '@/components/dialogs/transition';
 import DateTimeRangePicker from '@/components/dateTimeRangePicker';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import useCopy from '@/hooks/useCopy';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export default function AdminEventsPage({ session }: { session: Session }) {
   useAuthGuard(session, 'ADMIN');
@@ -39,7 +42,7 @@ export default function AdminEventsPage({ session }: { session: Session }) {
     setEvents(sorted);
   };
 
-  const updateEvents = (event: ApiPutEventResponse) => {
+  const updateEvents = (event: ApiPutEventAdminResponse) => {
     setEvents((prev) =>
       prev.map((e) => (e.id == event.id ? { ...e, ...event } : e))
     );
@@ -96,9 +99,10 @@ function EventCard({
   onUpdate,
 }: {
   event: ApiGetEventsResponse[number];
-  onUpdate: (event: ApiPutEventResponse) => void;
+  onUpdate: (event: ApiPutEventAdminResponse) => void;
 }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { copied, handleCopy } = useCopy();
 
   return (
     <Grid size={{ xs: 12, sm: 6 }}>
@@ -131,6 +135,19 @@ function EventCard({
             startIcon={<Edit />}
           >
             <p>Bearbeiten</p>
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() =>
+              handleCopy({
+                link: `${window?.location?.origin}/events/${event.id}`,
+                title: `Jetzt für ${event.name} anmelden`,
+              })
+            }
+            startIcon={copied ? <DoneAllIcon /> : <ContentCopyIcon />}
+          >
+            <p>Link teilen</p>
           </Button>
         </div>
       </Box>
@@ -268,7 +285,7 @@ function EditEventDialog({
   event: ApiGetEventsResponse[number];
   open: boolean;
   onClose: () => void;
-  onUpdate: (event: ApiPutEventResponse) => void;
+  onUpdate: (event: ApiPutEventAdminResponse) => void;
 }) {
   const [name, setName] = useState(event.name);
   const [date, setDate] = useState(
@@ -303,8 +320,8 @@ function EditEventDialog({
     setLoading(true);
 
     try {
-      const { data } = await axios.put<ApiPutEventResponse>(
-        `/api/events/${event.id}`,
+      const { data } = await axios.put<ApiPutEventAdminResponse>(
+        `/api/events/${event.id}/admin`,
         {
           name,
           date,
