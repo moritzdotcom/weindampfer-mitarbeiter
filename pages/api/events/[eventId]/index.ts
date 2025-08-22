@@ -15,7 +15,7 @@ export default async function handle(
     return res.status(400).json('Event ID is required');
 
   if (req.method === 'GET') {
-    await handleGET(req, res, eventId, session.id);
+    await handleGET(req, res, eventId);
   } else {
     throw new Error(
       `The HTTP ${req.method} method is not supported at this route.`
@@ -39,8 +39,7 @@ export type ApiGetEventResponse = Prisma.EventGetPayload<{
 async function handleGET(
   req: NextApiRequest,
   res: NextApiResponse,
-  eventId: string,
-  userId: string
+  eventId: string
 ) {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
