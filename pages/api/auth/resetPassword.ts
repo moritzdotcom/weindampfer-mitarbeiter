@@ -1,4 +1,5 @@
 import prisma from '@/lib/prismadb';
+import { hashPassword } from '@/lib/session';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handle(
@@ -34,7 +35,7 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { password },
+    data: { password: hashPassword(password) },
   });
 
   await prisma.resetPasswordToken.delete({ where: { id: token } });

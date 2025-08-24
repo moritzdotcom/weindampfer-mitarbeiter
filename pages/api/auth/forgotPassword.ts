@@ -19,7 +19,14 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
   const { email } = req.body;
   if (!email) return res.status(401).json('Wrong credentials');
 
-  const user = await prisma.user.findFirst({ where: { email } });
+  const user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: 'insensitive',
+      },
+    },
+  });
   if (user) {
     const token = await prisma.resetPasswordToken.create({
       data: {
