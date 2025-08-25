@@ -44,9 +44,9 @@ export const isUserNotRegistered = (event: EventType, userId: string) =>
 
 export const isCurrentEvent = (event: EventType) => {
   const now = new Date();
-  // Current is 4 hours before the start and 4 hours after the end
+  // Current is 10 hours before the start and 4 hours after the end
   const startThreshold = new Date(event.startTime);
-  startThreshold.setHours(startThreshold.getHours() - 4);
+  startThreshold.setHours(startThreshold.getHours() - 10);
   const endThreshold = new Date(event.endTime);
   endThreshold.setHours(endThreshold.getHours() + 4);
   return now >= startThreshold && now <= endThreshold;
