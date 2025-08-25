@@ -34,7 +34,9 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse) {
   const events = await prisma.event.findMany({
     where: { date: { gte: startOfYear } },
     include: {
-      _count: { select: { registrations: true } },
+      _count: {
+        select: { registrations: { where: { status: { not: 'CANCELLED' } } } },
+      },
     },
   });
   return res.json(events);

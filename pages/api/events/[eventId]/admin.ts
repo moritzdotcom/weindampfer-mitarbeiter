@@ -46,6 +46,7 @@ async function handleGET(
     where: { id },
     include: {
       registrations: {
+        where: { status: { not: 'CANCELLED' } },
         include: {
           shift: {
             include: { changeRequest: { where: { status: 'PENDING' } } },

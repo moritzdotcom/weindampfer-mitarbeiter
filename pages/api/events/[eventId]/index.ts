@@ -41,6 +41,7 @@ async function handleGET(
     where: { id: eventId },
     include: {
       registrations: {
+        where: { status: { not: 'CANCELLED' } },
         select: {
           id: true,
           helpsSetup: true,
