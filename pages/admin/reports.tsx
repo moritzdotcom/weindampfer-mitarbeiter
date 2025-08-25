@@ -5,11 +5,14 @@ import axios from 'axios';
 import BackendBackButton from '@/components/backendBackButton';
 import { ApiGetReportsResponse } from '../api/reports';
 import AdminUserReportCard from '@/components/admin/reportCard';
+import { MenuItem, TextField } from '@mui/material';
 
 export default function AdminReportsPage({ session }: { session: Session }) {
   useAuthGuard(session, 'ADMIN');
   const [users, setUsers] = useState<ApiGetReportsResponse>([]);
   const [loading, setLoading] = useState(true);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth());
 
   const userSortingFn = (
     a: ApiGetReportsResponse[number],
@@ -26,7 +29,9 @@ export default function AdminReportsPage({ session }: { session: Session }) {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get<ApiGetReportsResponse>('/api/reports');
+      const { data } = await axios.get<ApiGetReportsResponse>('/api/reports', {
+        params: { year, month },
+      });
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -37,7 +42,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [month, year]);
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 my-5">
@@ -46,6 +51,53 @@ export default function AdminReportsPage({ session }: { session: Session }) {
         <h2 className="text-2xl text-center font-light font-cocogoose">
           Zeiterfassung
         </h2>
+        <div className="flex items-center gap-6 mt-4">
+          <TextField
+            select
+            fullWidth
+            variant="standard"
+            value={month}
+            onChange={(e) => {
+              setMonth(Number(e.target.value));
+            }}
+          >
+            <MenuItem value={0}>Januar</MenuItem>
+            <MenuItem value={1}>Februar</MenuItem>
+            <MenuItem value={2}>März</MenuItem>
+            <MenuItem value={3}>April</MenuItem>
+            <MenuItem value={4}>Mai</MenuItem>
+            <MenuItem value={5}>Juni</MenuItem>
+            <MenuItem value={6}>Juli</MenuItem>
+            <MenuItem value={7}>August</MenuItem>
+            <MenuItem value={8}>September</MenuItem>
+            <MenuItem value={9}>Oktober</MenuItem>
+            <MenuItem value={10}>November</MenuItem>
+            <MenuItem value={11}>Dezember</MenuItem>
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            variant="standard"
+            value={year}
+            onChange={(e) => {
+              setYear(Number(e.target.value));
+            }}
+          >
+            {Array.from({
+              length:
+                new Date().getFullYear() -
+                new Date('01-01-2025').getFullYear() +
+                1,
+            }).map((_, i) => {
+              const y = new Date().getFullYear() - i;
+              return (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+        </div>
       </div>
 
       {loading ? (
