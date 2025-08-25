@@ -25,7 +25,7 @@ export const calculatePersonalTip = (
     }, 0);
   if (totalMinutesWorked == 0) return 0;
   const ownMinutesWorked = calculateMinutesWorked(ownShift) || 0;
-  return (totalTip * ownMinutesWorked) / totalMinutesWorked;
+  return Math.floor((totalTip * ownMinutesWorked) / totalMinutesWorked / 5) * 5;
 };
 
 export const formatShiftTime = (time: Date | string | null) => {
