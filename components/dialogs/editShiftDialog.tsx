@@ -8,43 +8,53 @@ import {
 import { useState } from 'react';
 import DialogTransition from './transition';
 import axios from 'axios';
-import { ApiPostShiftResponse } from '@/pages/api/registrations/[registrationId]/createShift';
 import TimeRangePicker from '../timeRangePicker';
 import { format } from 'date-fns';
 import { showSuccess } from '@/lib/toast';
+import { ApiPutShiftResponse } from '@/pages/api/shifts/[shiftId]/edit';
 
-type CreateShiftDialogProps = {
+type EditShiftDialogProps = {
   open: boolean;
-  registrationId: string;
   userName: string;
   eventDate: Date;
+  shift: { id: string; clockIn: Date | null; clockOut: Date | null };
   onClose: () => void;
-  onCreate: (shift: ApiPostShiftResponse) => void;
+  onUpdate: (shift: ApiPutShiftResponse) => void;
 };
 
-export default function CreateShiftDialog({
+export default function EditShiftDialog({
   open,
-  registrationId,
   userName,
   eventDate,
+  shift,
   onClose,
-  onCreate,
-}: CreateShiftDialogProps) {
-  const [clockIn, setClockIn] = useState('');
-  const [clockInDT, setClockInDT] = useState('');
-  const [clockOut, setClockOut] = useState('');
-  const [clockOutDT, setClockOutDT] = useState('');
+  onUpdate,
+}: EditShiftDialogProps) {
+  const [clockIn, setClockIn] = useState(
+    shift.clockIn ? format(shift.clockIn, 'HH:mm') : ''
+  );
+  const [clockInDT, setClockInDT] = useState(
+    shift.clockIn ? format(shift.clockIn, "yyyy-MM-dd'T'HH:mm") : ''
+  );
+  const [clockOut, setClockOut] = useState(
+    shift.clockOut ? format(shift.clockOut, 'HH:mm') : ''
+  );
+  const [clockOutDT, setClockOutDT] = useState(
+    shift.clockOut ? format(shift.clockOut, "yyyy-MM-dd'T'HH:mm") : ''
+  );
   const [loading, setLoading] = useState(false);
+
+  console.log({ clockIn, clockInDT, clockOut, clockOutDT });
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.post<ApiPostShiftResponse>(
-        `/api/registrations/${registrationId}/createShift`,
+      const { data } = await axios.put<ApiPutShiftResponse>(
+        `/api/shifts/${shift.id}/edit`,
         { clockIn: new Date(clockInDT), clockOut: new Date(clockOutDT) }
       );
       showSuccess('Zeiten gespeichert');
-      onCreate(data);
+      onUpdate(data);
       handleClose();
     } catch (error) {
       console.error('Error creating invite:', error);
@@ -54,10 +64,6 @@ export default function CreateShiftDialog({
   };
 
   const handleClose = () => {
-    setClockIn('');
-    setClockInDT('');
-    setClockOut('');
-    setClockOutDT('');
     setLoading(false);
     onClose();
   };
@@ -80,7 +86,7 @@ export default function CreateShiftDialog({
       }}
     >
       <DialogTitle sx={{ textAlign: 'center', fontWeight: 600 }}>
-        Zeiten manuell erfassen
+        Zeiten bearbeiten
       </DialogTitle>
       <DialogContent>
         <p className="text-lg my-3">

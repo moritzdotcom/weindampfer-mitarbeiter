@@ -14,6 +14,7 @@ import {
   CalendarMonth,
   Check,
   Close,
+  Edit,
   InfoOutlined,
 } from '@mui/icons-material';
 import { formatEventDate, formatEventTime } from '@/lib/event';
@@ -37,6 +38,8 @@ import { ApiPostShiftResponse } from '@/pages/api/shifts';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CreateRegistrationDialog from '@/components/dialogs/createRegistrationDialog';
 import { ApiCreateRegistrationForUserResponse } from '@/pages/api/users/[userId]/createRegistration';
+import EditShiftDialog from '@/components/dialogs/editShiftDialog';
+import { ApiPutShiftResponse } from '@/pages/api/shifts/[shiftId]/edit';
 
 export default function AdminEventPage({
   session,
@@ -75,6 +78,19 @@ export default function AdminEventPage({
         registrations: prev.registrations.map((r) => {
           if (r.id !== id) return r;
           return { ...r, shift: { ...shift, changeRequest: null } };
+        }),
+      };
+    });
+  };
+
+  const onShiftUpdated = (shift: ApiPutShiftResponse) => {
+    setEvent((prev) => {
+      if (!prev) return undefined;
+      return {
+        ...prev,
+        registrations: prev.registrations.map((r) => {
+          if (r.shift?.id !== shift.id) return r;
+          return { ...r, shift: { ...r.shift, ...shift } };
         }),
       };
     });
@@ -213,6 +229,7 @@ export default function AdminEventPage({
                   onRejectChange={onRejectChange}
                   onToggleTip={onToggleTip}
                   onShiftCreated={(s) => onShiftCreated(reg.id, s)}
+                  onShiftUpdated={onShiftUpdated}
                 />
               );
             })}
@@ -257,6 +274,7 @@ function EventRegistrationCard({
   onRejectChange,
   onToggleTip,
   onShiftCreated,
+  onShiftUpdated,
 }: {
   registration: ApiGetEventAdminResponse['registrations'][number];
   eventDate: Date;
@@ -268,6 +286,7 @@ function EventRegistrationCard({
   onRejectChange: (id: string) => void;
   onToggleTip: (id: string, receivesTip: boolean) => void;
   onShiftCreated: (shift: ApiPostShiftResponse) => void;
+  onShiftUpdated: (shift: ApiPutShiftResponse) => void;
 }) {
   const user = registration.user;
   const shift = registration.shift;
@@ -276,6 +295,7 @@ function EventRegistrationCard({
   const [loadingRejectChange, setLoadingRejectChange] = useState(false);
   const [loadingToggleTip, setLoadingToggleTip] = useState(false);
   const [createShiftOpen, setCreateShiftOpen] = useState(false);
+  const [updateShiftOpen, setUpdateShiftOpen] = useState(false);
 
   const approveChange = async () => {
     if (!changeRequest) return;
@@ -352,13 +372,32 @@ function EventRegistrationCard({
         </div>
 
         {shift ? (
-          <div className="flex flex-col gap-2 text-sm text-gray-200 mt-3 sm:mt-0">
-            <p>
-              <b>Check-in:</b> {formatShiftTime(shift.clockIn)}
-            </p>
-            <p>
-              <b>Check-out:</b> {formatShiftTime(shift.clockOut)}
-            </p>
+          <div className="flex items-center justify-between sm:flex-row-reverse gap-2 text-sm text-gray-200 mt-3 sm:mt-0 bg-neutral-900/50 p-3 sm:p-0 sm:bg-transparent rounded-lg">
+            <div className="flex flex-col gap-2">
+              <p>
+                <b>Check-in:</b> {formatShiftTime(shift.clockIn)}
+              </p>
+              <p>
+                <b>Check-out:</b> {formatShiftTime(shift.clockOut)}
+              </p>
+            </div>
+            <IconButton
+              size="small"
+              color="inherit"
+              onClick={() => setUpdateShiftOpen(true)}
+            >
+              <Tooltip title="Zeiten bearbeiten">
+                <Edit />
+              </Tooltip>
+            </IconButton>
+            <EditShiftDialog
+              open={updateShiftOpen}
+              onClose={() => setUpdateShiftOpen(false)}
+              userName={user.name}
+              shift={shift}
+              eventDate={eventDate}
+              onUpdate={onShiftUpdated}
+            />
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 mt-3 sm:mt-0">
