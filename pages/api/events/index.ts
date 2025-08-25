@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma';
+import sendNewEventMail from '@/lib/mailer/newEventMail';
 import prisma from '@/lib/prismadb';
 import { getServerSession } from '@/lib/session';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -56,5 +57,20 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
       peopleRequired,
     },
   });
+
+  const users = await prisma.user.findMany({
+    where: { role: 'USER' },
+    select: { email: true },
+  });
+
+  if (users.length > 0) {
+    await sendNewEventMail(
+      users.map((u) => u.email),
+      event.id,
+      event.name,
+      event.date.toLocaleDateString('de-DE')
+    );
+  }
+
   return res.json(event);
 }
