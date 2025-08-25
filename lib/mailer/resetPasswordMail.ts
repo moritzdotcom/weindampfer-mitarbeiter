@@ -7,7 +7,6 @@ export default function sendResetPasswordMail(
 ) {
   return sendMail({
     to: email,
-    sendCopy: true,
     subject: 'Passwort zurücksetzen - Weindampfer',
     text: `Hallo ${name},\n\nDu hast eine Anfrage zum Zurücksetzen deines Passworts gestellt. Bitte klicke auf den folgenden Link, um dein Passwort zurückzusetzen:\n\n${process.env.PUBLIC_URL}auth/resetPassword?token=${token}\n\nLiebe Grüße,\nDein Weindampfer-Team`,
     html: `<!DOCTYPE html>
