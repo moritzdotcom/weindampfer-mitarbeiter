@@ -17,8 +17,11 @@ export default async function handler(
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json({ error: 'Not authenticated' });
+  if (session.role !== 'ADMIN')
+    return res.status(403).json({ error: 'Forbidden' });
 
-  const userId = session.id;
+  const userId = req.query.userId as string;
+  if (!userId) return res.status(400).json({ error: 'User ID is required' });
 
   if (req.method !== 'POST') return res.status(405).end();
 

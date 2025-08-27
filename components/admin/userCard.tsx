@@ -17,6 +17,7 @@ import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import axios from 'axios';
 import { showError, showSuccess } from '@/lib/toast';
 import { ApiUserPutResponse } from '@/pages/api/users/[userId]';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 export default function AdminUserCard({
   user,
@@ -114,6 +115,24 @@ export function UserEditDialog({
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [loading, setLoading] = useState(false);
+  const { handleImageUpload, previewUrl, uploading, error } = useImageUpload();
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await handleImageUpload(file);
+    if (base64) {
+      try {
+        await axios.post(`/api/users/${user.id}/uploadImage`, {
+          file: base64,
+        });
+        showSuccess('Profilbild erfolgreich aktualisiert');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        showError('Fehler beim Hochladen des Profilbilds');
+      }
+    }
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -149,6 +168,28 @@ export function UserEditDialog({
         Benutzer bearbeiten
       </DialogTitle>
       <DialogContent>
+        <div className="flex flex-col items-center gap-5 mb-6">
+          <Avatar
+            src={previewUrl || user?.image || undefined}
+            sx={{ width: 100, height: 100 }}
+          />
+          <Button
+            component="label"
+            variant="outlined"
+            color="info"
+            loading={uploading}
+            disabled={uploading}
+          >
+            Profilbild hochladen
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+          </Button>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
         <TextField
           label="Name"
           fullWidth
