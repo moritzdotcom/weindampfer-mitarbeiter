@@ -41,18 +41,36 @@ async function handlePOST(
   const { eventId, helpsSetup, helpsTeardown, clockIn, clockOut } = req.body;
   if (!eventId) return res.status(400).json('Invalid request');
 
+  if ((clockIn && Date.parse(clockIn)) || (clockOut && Date.parse(clockOut))) {
+    const registration = await prisma.registration.create({
+      data: {
+        event: { connect: { id: eventId } },
+        user: { connect: { id } },
+        helpsSetup,
+        helpsTeardown,
+        shift: {
+          create: {
+            clockIn,
+            clockOut,
+          },
+        },
+      },
+      include: {
+        shift: true,
+        user: {
+          select: { id: true, name: true, image: true },
+        },
+      },
+    });
+
+    return res.status(201).json(registration);
+  }
   const registration = await prisma.registration.create({
     data: {
       event: { connect: { id: eventId } },
       user: { connect: { id } },
       helpsSetup,
       helpsTeardown,
-      shift: {
-        create: {
-          clockIn,
-          clockOut,
-        },
-      },
     },
     include: {
       shift: true,
