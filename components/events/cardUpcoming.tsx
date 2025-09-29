@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Button, AvatarGroup, Avatar } from '@mui/material';
+import { Button, AvatarGroup } from '@mui/material';
 import { formatEventDate, formatEventTime } from '@/lib/event';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { ApiPostRegistrationResponse } from '@/pages/api/registrations';
 import RegisterDialog from '../dialogs/registerDialog';
+import UserAvatar from '../userAvatar';
 
 type UpcomingEventCardProps = {
   event: {
@@ -49,13 +50,11 @@ export default function UpcomingEventCard({
         sx={{
           mb: 1,
           justifyContent: 'flex-end',
-          '.MuiAvatar-root': { borderColor: 'var(--color-gray-900)' },
+          '.MuiAvatar-root': { borderColor: 'var(--color-stone-900)' },
         }}
       >
         {event.registrations.map(({ user }) => (
-          <Avatar key={user.id} src={user.image || undefined} alt={user.name}>
-            {user.name?.[0]?.toUpperCase() || '👤'}
-          </Avatar>
+          <UserAvatar key={user.id} user={user} />
         ))}
       </AvatarGroup>
 

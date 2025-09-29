@@ -1,7 +1,6 @@
 import {
   Button,
   AvatarGroup,
-  Avatar,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +18,7 @@ import { showError, showSuccess } from '@/lib/toast';
 import { ApiRegistrationCancelRequestResponse } from '@/pages/api/registrations/[registrationId]/cancelRequest';
 import { RegistrationStatus } from '@/generated/prisma';
 import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
+import UserAvatar from '../userAvatar';
 
 type RegisteredEventCardProps = {
   event: {
@@ -71,13 +71,11 @@ export default function RegisteredEventCard({
         sx={{
           mb: 1,
           justifyContent: 'flex-end',
-          '.MuiAvatar-root': { borderColor: 'var(--color-gray-900)' },
+          '.MuiAvatar-root': { borderColor: 'var(--color-stone-900)' },
         }}
       >
         {event.registrations.map(({ user }) => (
-          <Avatar key={user.id} src={user.image || undefined} alt={user.name}>
-            {user.name?.[0]?.toUpperCase() || '👤'}
-          </Avatar>
+          <UserAvatar key={user.id} user={user} />
         ))}
       </AvatarGroup>
 

@@ -1,4 +1,4 @@
-import { Button, AvatarGroup, Avatar } from '@mui/material';
+import { Button, AvatarGroup } from '@mui/material';
 import { formatEventDate, formatEventTime } from '@/lib/event';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -12,6 +12,7 @@ import axios from 'axios';
 import { showError, showSuccess } from '@/lib/toast';
 import { ApiPostShiftResponse } from '@/pages/api/shifts';
 import { ApiPutShiftResponse } from '@/pages/api/shifts/[shiftId]';
+import UserAvatar from '../userAvatar';
 
 type CurrentEventCardProps = {
   event: {
@@ -155,13 +156,11 @@ export default function CurrentEventCard({
           sx={{
             mb: 1,
             justifyContent: 'flex-end',
-            '.MuiAvatar-root': { borderColor: 'var(--color-gray-900)' },
+            '.MuiAvatar-root': { borderColor: 'var(--color-stone-900)' },
           }}
         >
           {event.registrations.map(({ user }) => (
-            <Avatar key={user.id} src={user.image || undefined} alt={user.name}>
-              {user.name?.[0]?.toUpperCase() || '👤'}
-            </Avatar>
+            <UserAvatar key={user.id} user={user} />
           ))}
         </AvatarGroup>
 
