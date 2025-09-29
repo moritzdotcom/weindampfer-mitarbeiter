@@ -129,14 +129,17 @@ export default function AdminEventPage({
     });
   };
 
-  const onToggleTip = (id: string, receivesTip: boolean) => {
+  const onToggleTip = (
+    id: string,
+    params: { tipReceived?: boolean; receivesTip?: boolean }
+  ) => {
     setEvent((prev) => {
       if (!prev) return undefined;
       return {
         ...prev,
         registrations: prev.registrations.map((r) => {
           if (r.shift?.id !== id) return r;
-          return { ...r, shift: { ...r.shift, receivesTip } };
+          return { ...r, shift: { ...r.shift, ...params } };
         }),
       };
     });
@@ -220,7 +223,7 @@ export default function AdminEventPage({
                   key={reg.id}
                   registration={reg}
                   eventDate={event.date}
-                  tipReceived={calculatePersonalTip(
+                  tipAmount={calculatePersonalTip(
                     Number(totalTip || 0),
                     reg.shift,
                     event.registrations.map(({ shift }) => shift)
@@ -269,7 +272,7 @@ export default function AdminEventPage({
 function EventRegistrationCard({
   registration,
   eventDate,
-  tipReceived,
+  tipAmount,
   onApproveChange,
   onRejectChange,
   onToggleTip,
@@ -278,13 +281,16 @@ function EventRegistrationCard({
 }: {
   registration: ApiGetEventAdminResponse['registrations'][number];
   eventDate: Date;
-  tipReceived: number | null;
+  tipAmount: number | null;
   onApproveChange: (
     id: string,
     shift: ApiApproveShiftChangeRequestResponse
   ) => void;
   onRejectChange: (id: string) => void;
-  onToggleTip: (id: string, receivesTip: boolean) => void;
+  onToggleTip: (
+    id: string,
+    params: { tipReceived?: boolean; receivesTip?: boolean }
+  ) => void;
   onShiftCreated: (shift: ApiPostShiftResponse) => void;
   onShiftUpdated: (shift: ApiPutShiftResponse) => void;
 }) {
@@ -294,6 +300,7 @@ function EventRegistrationCard({
   const [loadingApproveChange, setLoadingApproveChange] = useState(false);
   const [loadingRejectChange, setLoadingRejectChange] = useState(false);
   const [loadingToggleTip, setLoadingToggleTip] = useState(false);
+  const [loadingTipReceived, setLoadingTipReceived] = useState(false);
   const [createShiftOpen, setCreateShiftOpen] = useState(false);
   const [updateShiftOpen, setUpdateShiftOpen] = useState(false);
 
@@ -333,11 +340,27 @@ function EventRegistrationCard({
         `/api/shifts/${shift.id}/toggleTip`,
         { receivesTip: checked }
       );
-      onToggleTip(data.id, data.receivesTip);
+      onToggleTip(data.id, { receivesTip: data.receivesTip });
     } catch (error) {
       showError('Aktualisierung fehlgeschlagen');
     } finally {
       setLoadingToggleTip(false);
+    }
+  };
+
+  const markTipAsReceived = async () => {
+    if (!shift) return;
+    try {
+      setLoadingTipReceived(true);
+      const { data } = await axios.put<ApiShiftToggleTipResponse>(
+        `/api/shifts/${shift.id}/toggleTip`,
+        { tipReceived: true }
+      );
+      onToggleTip(data.id, { tipReceived: data.tipReceived });
+    } catch (error) {
+      showError('Aktualisierung fehlgeschlagen');
+    } finally {
+      setLoadingTipReceived(false);
     }
   };
 
@@ -421,29 +444,42 @@ function EventRegistrationCard({
         )}
       </div>
       {shift && (
-        <div className="mt-3 flex flex-col sm:flex-row justify-between sm:items-center">
-          <div className="flex items-center -ml-3">
-            <div className="w-11 h-11 flex items-center justify-center">
-              {loadingToggleTip ? (
-                <CircularProgress color="inherit" size={20} />
-              ) : (
-                <Checkbox
-                  size="small"
-                  checked={shift.receivesTip}
-                  onChange={(e) => toggleTip(e.target.checked)}
-                  sx={{ color: 'white' }}
-                />
-              )}
+        <div>
+          <div className="mt-3 flex flex-col sm:flex-row justify-between sm:items-center">
+            <div className="flex items-center -ml-3">
+              <div className="w-11 h-11 flex items-center justify-center">
+                {loadingToggleTip ? (
+                  <CircularProgress color="inherit" size={20} />
+                ) : (
+                  <Checkbox
+                    size="small"
+                    checked={shift.receivesTip}
+                    onChange={(e) => toggleTip(e.target.checked)}
+                    sx={{ color: 'white' }}
+                  />
+                )}
+              </div>
+              <span className="text-white">Bekommt Trinkgeld</span>
             </div>
-            <span className="text-white">Bekommt Trinkgeld</span>
+            {tipAmount ? (
+              <span>
+                Trinkgeld: <b>{tipAmount.toFixed(2)} €</b>
+              </span>
+            ) : (
+              <span className="text-gray-400">Kein Trinkgeld</span>
+            )}
           </div>
-          {tipReceived ? (
-            <span>
-              Trinkgeld: <b>{tipReceived.toFixed(2)} €</b>
-            </span>
-          ) : (
-            <span className="text-gray-400">Kein Trinkgeld</span>
-          )}
+          <Button
+            fullWidth
+            sx={{ mt: 1 }}
+            variant="contained"
+            color={shift.tipReceived ? 'success' : 'primary'}
+            disabled={shift.tipReceived}
+            onClick={() => markTipAsReceived()}
+            loading={loadingTipReceived}
+          >
+            {shift.tipReceived ? 'Trinkgeld ausgezahlt' : 'Trinkgeld übergeben'}
+          </Button>
         </div>
       )}
       {changeRequest && (

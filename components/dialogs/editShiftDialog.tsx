@@ -44,8 +44,6 @@ export default function EditShiftDialog({
   );
   const [loading, setLoading] = useState(false);
 
-  console.log({ clockIn, clockInDT, clockOut, clockOutDT });
-
   const handleSave = async () => {
     setLoading(true);
     try {

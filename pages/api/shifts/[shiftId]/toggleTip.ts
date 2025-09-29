@@ -31,12 +31,13 @@ async function handlePUT(
   res: NextApiResponse,
   id: string
 ) {
-  const { receivesTip } = req.body;
+  const { receivesTip, tipReceived } = req.body;
 
   const updated = await prisma.shift.update({
     where: { id },
     data: {
       receivesTip,
+      tipReceived,
     },
   });
 

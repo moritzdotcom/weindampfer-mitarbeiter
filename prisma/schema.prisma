@@ -78,6 +78,7 @@ model Shift {
   clockOutLat    Float?
   clockOutLon    Float?
   receivesTip    Boolean   @default(true)
+  tipReceived    Boolean   @default(false)
 
   registration  Registration        @relation(fields: [registrationId], references: [id])
   changeRequest ShiftChangeRequest?

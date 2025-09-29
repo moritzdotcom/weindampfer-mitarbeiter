@@ -33,6 +33,7 @@ type ProfileEventCardProps = {
     clockIn: Date | null;
     clockOut: Date | null;
     changeRequest: ShiftChangeRequest | null;
+    tipReceived: boolean;
   } | null;
   tipAmount?: number | null;
   onChangeRequest: (request: ApiPostShiftChangeRequestResponse) => void;
@@ -87,7 +88,9 @@ export default function ProfileEventCard({
             </b>
           </div>
           {tipAmount != null && (
-            <div className="text-green-400">
+            <div
+              className={shift.tipReceived ? 'text-gray-300' : 'text-green-400'}
+            >
               Trinkgeld: <b>{tipAmount.toFixed(2)} €</b>
             </div>
           )}
