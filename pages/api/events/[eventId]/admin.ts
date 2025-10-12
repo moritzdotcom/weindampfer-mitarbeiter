@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma';
+import sendEventCanceledMail from '@/lib/mailer/eventCanceledMail';
 import prisma from '@/lib/prismadb';
 import { getServerSession } from '@/lib/session';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -19,6 +20,8 @@ export default async function handle(
     await handleGET(req, res, eventId);
   } else if (req.method === 'PUT') {
     await handlePUT(req, res, eventId);
+  } else if (req.method === 'DELETE') {
+    await handleDELETE(req, res, eventId);
   } else {
     throw new Error(
       `The HTTP ${req.method} method is not supported at this route.`
@@ -78,5 +81,28 @@ async function handlePUT(
       totalTip: req.body.totalTip,
     },
   });
+  return res.json(event);
+}
+
+async function handleDELETE(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
+  const event = await prisma.event.delete({
+    where: { id },
+    include: {
+      registrations: {
+        where: { status: { not: 'CANCELLED' } },
+        select: { user: { select: { email: true } } },
+      },
+    },
+  });
+  const emails = event.registrations.map((r) => r.user.email);
+  await sendEventCanceledMail(
+    emails,
+    event.name,
+    event.date.toLocaleDateString('de-DE')
+  );
   return res.json(event);
 }

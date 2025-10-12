@@ -12,6 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export function sendMail({
   to,
+  cc,
   subject,
   text,
   html,
@@ -19,6 +20,7 @@ export function sendMail({
   attachments,
 }: {
   to: string | string[];
+  cc?: string | string[];
   subject: string;
   text: string;
   html?: string;
@@ -32,6 +34,7 @@ export function sendMail({
   return transporter.sendMail({
     from: process.env.MAIL_FROM,
     to,
+    cc,
     bcc: sendCopy ? process.env.MAIL_FROM : undefined,
     subject,
     text,

@@ -80,7 +80,7 @@ model Shift {
   receivesTip    Boolean   @default(true)
   tipReceived    Boolean   @default(false)
 
-  registration  Registration        @relation(fields: [registrationId], references: [id])
+  registration  Registration        @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   changeRequest ShiftChangeRequest?
 }
 
@@ -91,7 +91,7 @@ model ShiftChangeRequest {
   clockOut         DateTime?
   status           ChangeRequestStatus @default(PENDING)
   changeApprovedBy String?
-  shift            Shift               @relation(fields: [shiftId], references: [id])
+  shift            Shift               @relation(fields: [shiftId], references: [id], onDelete: Cascade)
 }
 
 model UserInvite {

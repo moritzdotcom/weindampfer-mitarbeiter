@@ -14,7 +14,7 @@ import {
 import axios from 'axios';
 import { Session } from '@/hooks/useSession';
 import { formatEventDate, formatEventTime } from '@/lib/event';
-import { Edit } from '@mui/icons-material';
+import { Edit, EventBusy } from '@mui/icons-material';
 import BackendBackButton from '@/components/backendBackButton';
 import { ApiGetEventsResponse } from '../../api/events';
 import { ApiPutEventAdminResponse } from '../../api/events/[eventId]/admin';
@@ -26,6 +26,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import useCopy from '@/hooks/useCopy';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { HoldToConfirmButton } from '@/components/holdToConfirmButton';
 
 export default function AdminEventsPage({ session }: { session: Session }) {
   useAuthGuard(session, 'ADMIN');
@@ -46,6 +47,10 @@ export default function AdminEventsPage({ session }: { session: Session }) {
     setEvents((prev) =>
       prev.map((e) => (e.id == event.id ? { ...e, ...event } : e))
     );
+  };
+
+  const eventDeleted = (eventId: string) => {
+    setEvents((prev) => prev.filter((e) => e.id !== eventId));
   };
 
   useEffect(() => {
@@ -81,7 +86,12 @@ export default function AdminEventsPage({ session }: { session: Session }) {
       )}
       <Grid container spacing={4}>
         {events.map((event) => (
-          <EventCard key={event.id} event={event} onUpdate={updateEvents} />
+          <EventCard
+            key={event.id}
+            event={event}
+            onUpdate={updateEvents}
+            onDelete={eventDeleted}
+          />
         ))}
       </Grid>
 
@@ -97,12 +107,19 @@ export default function AdminEventsPage({ session }: { session: Session }) {
 function EventCard({
   event,
   onUpdate,
+  onDelete,
 }: {
   event: ApiGetEventsResponse[number];
   onUpdate: (event: ApiPutEventAdminResponse) => void;
+  onDelete: (eventId: string) => void;
 }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { copied, handleCopy } = useCopy();
+
+  async function handleCancel() {
+    await axios.delete(`/api/events/${event.id}/admin`);
+    onDelete(event.id);
+  }
 
   return (
     <Grid size={{ xs: 12, sm: 6 }}>
@@ -149,6 +166,12 @@ function EventCard({
           >
             <p>Link teilen</p>
           </Button>
+          <HoldToConfirmButton
+            onConfirm={handleCancel}
+            seconds={5}
+            label="Event absagen"
+            startIcon={<EventBusy />}
+          />
         </div>
       </Box>
       <EditEventDialog
