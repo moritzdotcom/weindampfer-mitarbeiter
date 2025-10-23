@@ -18,7 +18,7 @@ import { Edit, EventBusy } from '@mui/icons-material';
 import BackendBackButton from '@/components/backendBackButton';
 import { ApiGetEventsResponse } from '../../api/events';
 import { ApiPutEventAdminResponse } from '../../api/events/[eventId]/admin';
-import { showError, showSuccess } from '@/lib/toast';
+import { showError, showInfo, showSuccess } from '@/lib/toast';
 import AddIcon from '@mui/icons-material/Add';
 import DialogTransition from '@/components/dialogs/transition';
 import DateTimeRangePicker from '@/components/dateTimeRangePicker';
@@ -49,8 +49,16 @@ export default function AdminEventsPage({ session }: { session: Session }) {
     );
   };
 
-  const eventDeleted = (eventId: string) => {
+  const eventDeleted = async (eventId: string) => {
+    const eventBackup = events;
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    try {
+      await axios.delete(`/api/events/${eventId}/admin`);
+      showInfo('Event abgesagt');
+    } catch (error) {
+      showError('Fehler beim Absagen des Events');
+      setEvents(eventBackup);
+    }
   };
 
   useEffect(() => {
@@ -117,7 +125,6 @@ function EventCard({
   const { copied, handleCopy } = useCopy();
 
   async function handleCancel() {
-    await axios.delete(`/api/events/${event.id}/admin`);
     onDelete(event.id);
   }
 
