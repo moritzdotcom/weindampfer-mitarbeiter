@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowBackIos } from '@mui/icons-material';
+import { ArrowBackIos, Paid } from '@mui/icons-material';
 import { Session } from '@/hooks/useSession';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { differenceInMinutes } from 'date-fns';
@@ -12,6 +12,8 @@ import { CircularProgress, Divider } from '@mui/material';
 import { ApiPostShiftChangeRequestResponse } from '../api/shifts/[shiftId]/changeRequest';
 import { GetServerSidePropsContext } from 'next';
 import prisma from '@/lib/prismadb';
+import { HoldToConfirmButton } from '@/components/holdToConfirmButton';
+import { showError, showSuccess } from '@/lib/toast';
 
 export default function UserProfilePage({
   session,
@@ -36,6 +38,22 @@ export default function UserProfilePage({
     };
     fetchData();
   }, []);
+
+  async function handleConfirmTipPayout() {
+    const backupRegistrations = registrations;
+    setRegistrations((prev) =>
+      prev.map((r) =>
+        r.shift ? { ...r, shift: { ...r.shift, tipReceived: true } } : r
+      )
+    );
+    try {
+      await axios.put(`/api/users/${user.id}/markTipAsReceived`);
+      showSuccess('Trinkgeld erfolgreich ausgezahlt');
+    } catch (error) {
+      showError('Trinkgeld Auszahlung fehlgeschlagen');
+      setRegistrations(backupRegistrations);
+    }
+  }
 
   const registrationsWithShifts = useMemo(
     () =>
@@ -89,6 +107,18 @@ export default function UserProfilePage({
     );
   };
 
+  const totalTipToPay = useMemo(() => {
+    return registrationsWithShifts.reduce((sum, { shift, event }) => {
+      if (shift?.tipReceived) return sum;
+      const personalTip = calculatePersonalTip(
+        event.totalTip,
+        shift,
+        event.registrations.map((r) => r.shift)
+      );
+      return sum + (personalTip || 0);
+    }, 0);
+  }, [registrationsWithShifts]);
+
   return (
     <div className="max-w-3xl mx-auto p-6 text-white">
       <Link
@@ -113,6 +143,20 @@ export default function UserProfilePage({
           <p className="text-sm text-neutral-400">Stunden dieses Jahr</p>
           <p className="text-xl font-bold">{yearlyHours} Std.</p>
         </div>
+        <div className="bg-neutral-800 p-4 rounded-xl text-center col-span-2">
+          <p className="text-sm text-neutral-400">Ausstehendes Trinkgeld</p>
+          <p className="text-xl font-bold">{totalTipToPay} €</p>
+        </div>
+        {totalTipToPay > 0 && (
+          <HoldToConfirmButton
+            onConfirm={handleConfirmTipPayout}
+            seconds={3}
+            label="Gesamtes Trinkgeld auszahlen"
+            startIcon={<Paid />}
+            color="primary"
+            sx={{ gridColumn: 'span 2' }}
+          />
+        )}
       </div>
 
       {loading ? (

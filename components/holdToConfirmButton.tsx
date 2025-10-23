@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import { EventBusy } from '@mui/icons-material';
+import { SxProps } from '@mui/material';
 
 type HoldToConfirmButtonProps = {
   onConfirm: () => void;
@@ -17,6 +18,7 @@ type HoldToConfirmButtonProps = {
   variant?: 'text' | 'outlined' | 'contained';
   startIcon?: React.ReactNode;
   disabled?: boolean;
+  sx?: SxProps;
 };
 
 export function HoldToConfirmButton({
@@ -27,6 +29,7 @@ export function HoldToConfirmButton({
   variant = 'outlined',
   startIcon = <EventBusy />,
   disabled,
+  sx,
 }: HoldToConfirmButtonProps) {
   const [holding, setHolding] = React.useState(false);
   const [remaining, setRemaining] = React.useState(seconds);
@@ -99,6 +102,7 @@ export function HoldToConfirmButton({
       onTouchEnd={onTouchEnd}
       className={holding ? 'hold-wobble' : undefined}
       sx={{
+        ...sx,
         position: 'relative',
         overflow: 'hidden',
         '--shake-deg': `${Math.min(amplitude / 4, 6)}deg` as any, // maximale Neigung ~6°
