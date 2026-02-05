@@ -5,7 +5,7 @@ import axios from 'axios';
 import BackendBackButton from '@/components/backendBackButton';
 import { ApiGetReportsResponse } from '../api/reports';
 import AdminUserReportCard from '@/components/admin/reportCard';
-import { MenuItem, TextField } from '@mui/material';
+import { Button, MenuItem, TextField } from '@mui/material';
 
 export default function AdminReportsPage({ session }: { session: Session }) {
   useAuthGuard(session, 'ADMIN');
@@ -16,7 +16,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
 
   const userSortingFn = (
     a: ApiGetReportsResponse[number],
-    b: ApiGetReportsResponse[number]
+    b: ApiGetReportsResponse[number],
   ) => {
     // 1. ADMINs zuerst
     if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
@@ -39,6 +39,22 @@ export default function AdminReportsPage({ session }: { session: Session }) {
       setLoading(false);
     }
   };
+
+  async function downloadTimesheets(year: number, month0based: number) {
+    const res = await fetch(
+      `/api/reports/timesheetsZip?year=${year}&month=${month0based}`,
+    );
+    if (!res.ok) throw new Error('Download failed');
+
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Stundenzettel_${year}_${String(month0based + 1).padStart(2, '0')}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  }
 
   useEffect(() => {
     fetchUsers();
@@ -86,7 +102,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
             {Array.from({
               length:
                 new Date().getFullYear() -
-                new Date('01-01-2025').getFullYear() +
+                new Date('2025-01-01').getFullYear() +
                 1,
             }).map((_, i) => {
               const y = new Date().getFullYear() - i;
@@ -104,6 +120,14 @@ export default function AdminReportsPage({ session }: { session: Session }) {
         <p className="text-center text-gray-500 mt-8">Lade Benutzer...</p>
       ) : (
         <>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => downloadTimesheets(year, month)}
+            sx={{ mt: 3 }}
+          >
+            Stundenzettel herunterladen
+          </Button>
           <div className="mt-8">
             {users.length > 0 ? (
               <ul className="space-y-3">
