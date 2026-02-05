@@ -30,7 +30,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "react-signature-canvas": "^1.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.6",
@@ -43,6 +44,7 @@
     "@types/pdfkit": "^0.13.9",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-signature-canvas": "^1.0.7",
     "dotenv": "^17.2.1",
     "prisma": "^6.7.0",
     "tailwindcss": "^4",
