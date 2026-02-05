@@ -36,7 +36,7 @@ type EventType = {
 
 export const isUserRegistered = (event: EventType, userId: string) =>
   event.registrations.some(
-    (r) => r.userId === userId && r.status !== 'CANCELLED'
+    (r) => r.userId === userId && r.status !== 'CANCELLED',
   );
 
 export const isUserNotRegistered = (event: EventType, userId: string) =>
@@ -54,11 +54,11 @@ export const isCurrentEvent = (event: EventType) => {
 
 export const hasOngoingShift = (event: EventType, userId: string) =>
   event.registrations.some(
-    (r) => r.userId === userId && r.shift?.clockIn && !r.shift?.clockOut
+    (r) => r.userId === userId && r.shift?.clockIn && !r.shift?.clockOut,
   );
 
-type SimpleEvent = { date: Date | string };
+type SimpleEvent = { startTime: Date | string };
 
 export function eventSortFn(a: SimpleEvent, b: SimpleEvent) {
-  return new Date(a.date).getTime() - new Date(b.date).getTime();
+  return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
 }
