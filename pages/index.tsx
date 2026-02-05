@@ -10,7 +10,6 @@ import {
   isUserNotRegistered,
   isCurrentEvent,
   hasOngoingShift,
-  formatEventTime,
   eventSortFn,
 } from '@/lib/event';
 import UpcomingEventCard from '@/components/events/cardUpcoming';
@@ -20,6 +19,7 @@ import CurrentEventCard from '@/components/events/cardCurrent';
 import { ApiPostShiftResponse } from './api/shifts';
 import Link from 'next/link';
 import { ApiRegistrationCancelRequestResponse } from './api/registrations/[registrationId]/cancelRequest';
+import AddToCalendarButton from '@/components/addToCalendarButton';
 
 export default function Home({ session }: { session: Session }) {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function Home({ session }: { session: Session }) {
         return {
           ...event,
           registrations: event.registrations.map((r) =>
-            r.id == registration.id ? registration : r
+            r.id == registration.id ? registration : r,
           ),
         };
       });
@@ -64,7 +64,7 @@ export default function Home({ session }: { session: Session }) {
 
       return prev.map((event) => {
         const registration = event.registrations.find(
-          (r) => r.id === data.registrationId
+          (r) => r.id === data.registrationId,
         );
 
         if (!registration) return event;
@@ -72,7 +72,7 @@ export default function Home({ session }: { session: Session }) {
         return {
           ...event,
           registrations: event.registrations.map((r) =>
-            r.id === registration.id ? { ...r, shift: data } : r
+            r.id === registration.id ? { ...r, shift: data } : r,
           ),
         };
       });
@@ -103,7 +103,7 @@ export default function Home({ session }: { session: Session }) {
 
     return (
       myData.find(
-        (event) => isCurrentEvent(event) && isUserRegistered(event, userId)
+        (event) => isCurrentEvent(event) && isUserRegistered(event, userId),
       ) ??
       myData.find((event) => hasOngoingShift(event, userId)) ??
       null
@@ -114,7 +114,7 @@ export default function Home({ session }: { session: Session }) {
     if (!myData || !userId) return [];
     return myData.filter(
       (event) =>
-        isUserRegistered(event, userId) && currentEvent?.id !== event.id
+        isUserRegistered(event, userId) && currentEvent?.id !== event.id,
     );
   }, [myData, userId, currentEvent]);
 
@@ -122,7 +122,7 @@ export default function Home({ session }: { session: Session }) {
     if (!myData || !userId) return [];
     return myData.filter(
       (event) =>
-        isUserNotRegistered(event, userId) && currentEvent?.id !== event.id
+        isUserNotRegistered(event, userId) && currentEvent?.id !== event.id,
     );
   }, [myData, userId, currentEvent]);
 
@@ -180,6 +180,7 @@ export default function Home({ session }: { session: Session }) {
             {registeredEvents.length > 0 && (
               <div className="flex flex-col gap-4">
                 <Divider>Deine Veranstaltungen</Divider>
+                <AddToCalendarButton />
                 {registeredEvents.sort(eventSortFn).map((event) => (
                   <RegisteredEventCard
                     key={event.id}

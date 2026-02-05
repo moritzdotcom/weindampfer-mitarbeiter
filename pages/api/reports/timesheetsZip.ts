@@ -9,12 +9,14 @@ import path from 'path';
 
 import PDFDocument from 'pdfkit';
 import archiver from 'archiver';
+import { supabase } from '@/lib/supabase';
 
 type Row = {
   date: Date;
   begin: Date;
   end: Date;
   minutes: number;
+  signaturePath?: string | null;
 };
 
 export const config = {
@@ -60,7 +62,13 @@ export default async function handle(
         },
         select: {
           event: { select: { date: true } },
-          shift: { select: { clockIn: true, clockOut: true } },
+          shift: {
+            select: {
+              clockIn: true,
+              clockOut: true,
+              checkoutSignaturePath: true,
+            },
+          },
         },
       },
     },
@@ -100,7 +108,13 @@ export default async function handle(
         const co = r.shift?.clockOut ?? null;
         if (!ci || !co) return null;
         const minutes = Math.max(0, Math.round((+co - +ci) / 60000));
-        return { date: r.event.date, begin: ci, end: co, minutes };
+        return {
+          date: r.event.date,
+          begin: ci,
+          end: co,
+          minutes,
+          signaturePath: r.shift?.checkoutSignaturePath ?? null,
+        };
       })
       .filter(Boolean) as Row[];
 
@@ -143,6 +157,23 @@ async function buildTimesheetPdfBuffer(opts: {
   monthLabel: string; // MM-YYYY
   rows: Row[];
 }): Promise<Buffer> {
+  const signatureBuffersByPath = new Map<string, Buffer>();
+
+  const paths = Array.from(
+    new Set(opts.rows.map((r) => r.signaturePath).filter(Boolean) as string[]),
+  );
+
+  await Promise.all(
+    paths.map(async (p) => {
+      const { data, error } = await supabase.storage
+        .from('signatures')
+        .download(p);
+      if (error || !data) return;
+      const buf = Buffer.from(await data.arrayBuffer());
+      signatureBuffersByPath.set(p, buf);
+    }),
+  );
+
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: 'A4',
@@ -228,17 +259,17 @@ async function buildTimesheetPdfBuffer(opts: {
     const availableH = bottomY - (tableTop + headerH);
 
     // Startwerte
-    let rowH = 20;
-    let fontSize = 10;
+    let rowH = 40;
+    let fontSize = 14;
 
     // Wenn zu viele Zeilen: kompakter
-    const maxRowsAt20 = Math.floor(availableH / rowH);
-    if (opts.rows.length > maxRowsAt20) {
-      rowH = 16;
-      fontSize = 9;
+    const maxRowsAt40 = Math.floor(availableH / rowH) - 1;
+    if (opts.rows.length > maxRowsAt40) {
+      rowH = 30;
+      fontSize = 13;
     }
 
-    const maxRows = Math.max(1, Math.floor(availableH / rowH)) - 2;
+    const maxRows = Math.max(1, Math.floor(availableH / rowH)) - 1;
 
     const visibleRows = opts.rows.slice(0, maxRows);
     const hiddenCount = Math.max(0, opts.rows.length - visibleRows.length);
@@ -282,7 +313,22 @@ async function buildTimesheetPdfBuffer(opts: {
         doc.text(endStr, tx + padX, ty, { width: wEnd - 2 * padX });
         tx += wEnd;
         doc.text(workStr, tx + padX, ty, { width: wWork - 2 * padX });
-        // Unterschrift bleibt leer
+        tx += wWork;
+
+        if (r.signaturePath) {
+          const sigBuf = signatureBuffersByPath.get(r.signaturePath);
+
+          if (sigBuf) {
+            const imgPad = 4;
+
+            // In die Zelle einpassen (fit), zentriert
+            doc.image(sigBuf, tx + imgPad, y + imgPad, {
+              fit: [wSign - imgPad * 2, rowH - imgPad * 2],
+              align: 'center',
+              valign: 'center',
+            });
+          }
+        }
       }
 
       y += rowH;

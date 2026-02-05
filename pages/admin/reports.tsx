@@ -14,6 +14,8 @@ export default function AdminReportsPage({ session }: { session: Session }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
 
+  const [loadingReports, setLoadingReports] = useState(false);
+
   const userSortingFn = (
     a: ApiGetReportsResponse[number],
     b: ApiGetReportsResponse[number],
@@ -41,6 +43,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
   };
 
   async function downloadTimesheets(year: number, month0based: number) {
+    setLoadingReports(true);
     const res = await fetch(
       `/api/reports/timesheetsZip?year=${year}&month=${month0based}`,
     );
@@ -54,6 +57,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
     a.click();
     a.remove();
     URL.revokeObjectURL(a.href);
+    setLoadingReports(false);
   }
 
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
             fullWidth
             variant="standard"
             value={month}
+            disabled={loadingReports}
             onChange={(e) => {
               setMonth(Number(e.target.value));
             }}
@@ -95,6 +100,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
             fullWidth
             variant="standard"
             value={year}
+            disabled={loadingReports}
             onChange={(e) => {
               setYear(Number(e.target.value));
             }}
@@ -125,6 +131,7 @@ export default function AdminReportsPage({ session }: { session: Session }) {
             fullWidth
             onClick={() => downloadTimesheets(year, month)}
             sx={{ mt: 3 }}
+            loading={loadingReports}
           >
             Stundenzettel herunterladen
           </Button>
