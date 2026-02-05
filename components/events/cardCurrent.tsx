@@ -13,6 +13,7 @@ import { showError, showSuccess } from '@/lib/toast';
 import { ApiPostShiftResponse } from '@/pages/api/shifts';
 import { ApiPutShiftResponse } from '@/pages/api/shifts/[shiftId]';
 import UserAvatar from '../userAvatar';
+import SignatureDialog from '../dialogs/signatureDialog';
 
 type CurrentEventCardProps = {
   event: {
@@ -46,8 +47,11 @@ export default function CurrentEventCard({
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
 
+  const [signatureOpen, setSignatureOpen] = useState(false);
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+
   const registration = event?.registrations?.find(
-    (r) => r.user.id === session?.user?.id
+    (r) => r.user.id === session?.user?.id,
   );
 
   const checkInInit = async () => {
@@ -77,10 +81,11 @@ export default function CurrentEventCard({
 
   const checkOutInit = async () => {
     setCheckingOut(true);
+    setSignatureOpen(true);
     getLocation();
   };
 
-  const checkOut = async () => {
+  const checkOut = async (sigDataUrl: string) => {
     if (!location || !registration?.shift) return;
 
     try {
@@ -90,15 +95,18 @@ export default function CurrentEventCard({
           clockOut: new Date(),
           clockOutLat: location.coords.latitude,
           clockOutLon: location.coords.longitude,
-        }
+          checkoutSignatureDataUrl: sigDataUrl,
+        },
       );
       onCheckOut(data);
       setCheckingOut(false);
+      setSignatureDataUrl(null);
       showSuccess('Erfolgreich ausgecheckt!');
     } catch (error) {
       console.error('Check-out failed:', error);
       showError('Check-out fehlgeschlagen. Bitte versuche es erneut.');
       setCheckingOut(false);
+      setSignatureDataUrl(null);
     }
   };
 
@@ -109,21 +117,21 @@ export default function CurrentEventCard({
   }, [location, registration, checkingIn]);
 
   useEffect(() => {
-    if (location && registration && checkingOut) {
-      checkOut();
+    if (location && registration?.shift && checkingOut && signatureDataUrl) {
+      checkOut(signatureDataUrl);
     }
-  }, [location, registration, checkingOut]);
+  }, [location, registration?.shift, checkingOut, signatureDataUrl]);
 
   useEffect(() => {
     if (error) {
       console.error('Location error:', error);
       if (error.code == 1) {
         showError(
-          'Du hast den Zugriff auf deinen Standort blockiert. Bitte aktiviere ihn in den Browser-Einstellungen, um diese Funktion nutzen zu können.'
+          'Du hast den Zugriff auf deinen Standort blockiert. Bitte aktiviere ihn in den Browser-Einstellungen, um diese Funktion nutzen zu können.',
         );
       } else {
         showError(
-          'Fehler beim Abrufen des Standorts. Bitte versuche es erneut.'
+          'Fehler beim Abrufen des Standorts. Bitte versuche es erneut.',
         );
       }
       setCheckingIn(false);
@@ -226,6 +234,19 @@ export default function CurrentEventCard({
             </Button>
           )}
         </div>
+        <SignatureDialog
+          open={signatureOpen}
+          onClose={() => {
+            setSignatureOpen(false);
+            setCheckingOut(false);
+            setSignatureDataUrl(null);
+          }}
+          onConfirm={(dataUrl) => {
+            setSignatureOpen(false);
+            setSignatureDataUrl(dataUrl);
+            getLocation(); // erst jetzt
+          }}
+        />
       </div>
     </EventCardAnimationWrapper>
   );

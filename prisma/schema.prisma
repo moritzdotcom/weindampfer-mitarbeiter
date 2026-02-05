@@ -69,16 +69,18 @@ model Registration {
 }
 
 model Shift {
-  id             String    @id @default(uuid())
-  registrationId String    @unique
-  clockIn        DateTime?
-  clockInLat     Float?
-  clockInLon     Float?
-  clockOut       DateTime?
-  clockOutLat    Float?
-  clockOutLon    Float?
-  receivesTip    Boolean   @default(true)
-  tipReceived    Boolean   @default(false)
+  id                    String    @id @default(uuid())
+  registrationId        String    @unique
+  clockIn               DateTime?
+  clockInLat            Float?
+  clockInLon            Float?
+  clockOut              DateTime?
+  clockOutLat           Float?
+  clockOutLon           Float?
+  receivesTip           Boolean   @default(true)
+  tipReceived           Boolean   @default(false)
+  checkoutSignaturePath String? // z.B. "userId/2026-02/shiftId.png"
+  checkoutSignedAt      DateTime?
 
   registration  Registration        @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   changeRequest ShiftChangeRequest?
