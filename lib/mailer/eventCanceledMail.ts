@@ -3,14 +3,14 @@ import { sendMail } from '@/lib/mailer';
 export default function sendEventCanceledMail(
   emails: string[],
   eventName: string,
-  eventDate: string
+  eventDate: string,
 ) {
   return sendMail({
     to: emails,
     cc: [
       'sk@km-entertainment.de',
       'ml@km-entertainment.de',
-      'nm@km-entertainment.de',
+      'cs@km-entertainment.de',
     ],
     subject: `Event wurde abgesagt: ${eventName}`,
     text: `Hallo, leider müssen wir das Event (${eventName} am ${eventDate}) absagen.`,

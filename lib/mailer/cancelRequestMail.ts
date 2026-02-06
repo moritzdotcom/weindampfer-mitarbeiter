@@ -4,13 +4,13 @@ export default function sendCancelRequestMail(
   eventName: string,
   eventDate: string,
   name: string,
-  reason: string
+  reason: string,
 ) {
   return sendMail({
     to: [
       'sk@km-entertainment.de',
       'ml@km-entertainment.de',
-      'nm@km-entertainment.de',
+      'cs@km-entertainment.de',
     ],
     subject: `${name} möchte sich austragen`,
     text: `${name} möchte sich von dem Event ${eventName} austragen.`,
