@@ -42,7 +42,7 @@ const theme = createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          backgroundColor: 'var(--color-gray-900)',
+          backgroundColor: 'var(--color-neutral-800)',
           color: '#ffffff',
         },
       },
@@ -70,7 +70,7 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          backgroundColor: '#1f2937',
+          backgroundColor: 'var(--color-neutral-800)',
           color: '#ffffff',
           borderRadius: 12,
           '& .MuiOutlinedInput-notchedOutline': {
@@ -107,6 +107,15 @@ const theme = createTheme({
           padding: '8px 16px',
           textTransform: 'none',
           boxShadow: 'none',
+        },
+      },
+    },
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          '&.Mui-checked': {
+            color: 'var(--color-neutral-50)',
+          },
         },
       },
     },
