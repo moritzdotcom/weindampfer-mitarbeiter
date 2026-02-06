@@ -13,6 +13,7 @@ import RegisterDialog from '@/components/dialogs/registerDialog';
 import { ApiPostRegistrationResponse } from '../api/registrations';
 import HtmlHead from '@/components/head';
 import prisma from '@/lib/prismadb';
+import { showInfo } from '@/lib/toast';
 
 export default function EventPage({
   session,
@@ -27,8 +28,17 @@ export default function EventPage({
   const [open, setOpen] = useState(false);
 
   const registration = event?.registrations.find(
-    (r) => r.user.id === session?.user?.id
+    (r) => r.user.id === session?.user?.id,
   );
+
+  function handleClickRegister() {
+    if (!event) return;
+    if (event.registrations.length >= event.peopleRequired) {
+      showInfo('Event ist voll');
+    } else {
+      setOpen(true);
+    }
+  }
 
   const onRegister = (registration: ApiPostRegistrationResponse) => {
     setEvent((prev) => {
@@ -43,7 +53,7 @@ export default function EventPage({
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await axios.get<ApiGetEventResponse>(
-        `/api/events/${eventId}`
+        `/api/events/${eventId}`,
       );
       setEvent(data);
     };
@@ -143,14 +153,14 @@ export default function EventPage({
                   color: '#111111',
                   '&:hover': { backgroundColor: '#dddddd' },
                 }}
-                onClick={() => setOpen(true)}
+                onClick={handleClickRegister}
               >
                 Für Event eintragen
               </Button>
               <RegisterDialog
                 open={open}
                 onClose={() => setOpen(false)}
-                eventId={event.id}
+                event={event}
                 onRegister={onRegister}
               />
             </div>

@@ -6,6 +6,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { ApiPostRegistrationResponse } from '@/pages/api/registrations';
 import RegisterDialog from '../dialogs/registerDialog';
 import UserAvatar from '../userAvatar';
+import { showInfo } from '@/lib/toast';
 
 type UpcomingEventCardProps = {
   event: {
@@ -17,6 +18,8 @@ type UpcomingEventCardProps = {
       user: { id: string; name: string; image: string | null };
     }[];
     peopleRequired: number;
+    setupRequired: boolean;
+    teardownRequired: boolean;
   };
   onRegister: (registration: ApiPostRegistrationResponse) => void;
 };
@@ -26,6 +29,14 @@ export default function UpcomingEventCard({
   onRegister,
 }: UpcomingEventCardProps) {
   const [open, setOpen] = useState(false);
+
+  function handleClickRegister() {
+    if (event.registrations.length >= event.peopleRequired) {
+      showInfo('Event ist voll');
+    } else {
+      setOpen(true);
+    }
+  }
 
   return (
     <div className="bg-neutral-900 p-5 rounded-2xl shadow-md text-white">
@@ -70,7 +81,7 @@ export default function UpcomingEventCard({
           color: '#111111',
           '&:hover': { backgroundColor: '#dddddd' },
         }}
-        onClick={() => setOpen(true)}
+        onClick={handleClickRegister}
       >
         Für Event eintragen
       </Button>
@@ -78,7 +89,7 @@ export default function UpcomingEventCard({
       <RegisterDialog
         open={open}
         onClose={() => setOpen(false)}
-        eventId={event.id}
+        event={event}
         onRegister={onRegister}
       />
     </div>

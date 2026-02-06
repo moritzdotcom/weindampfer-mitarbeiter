@@ -30,6 +30,11 @@ type RegisteredEventCardProps = {
       id: string;
       status: RegistrationStatus;
       user: { id: string; name: string; image: string | null };
+      shift?: {
+        id: string;
+        clockIn?: Date | null;
+        clockOut?: Date | null;
+      } | null;
     }[];
     peopleRequired: number;
   };
@@ -43,8 +48,10 @@ export default function RegisteredEventCard({
   onUpdate,
 }: RegisteredEventCardProps) {
   const registration = event?.registrations?.find(
-    (r) => r.user.id === session?.user?.id
+    (r) => r.user.id === session?.user?.id,
   );
+
+  const shift = registration?.shift;
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -102,7 +109,7 @@ export default function RegisteredEventCard({
               <InfoOutlineIcon />
               <p>Deine Anfrage zur Abmeldung steht noch aus.</p>
             </div>
-          ) : (
+          ) : shift?.clockIn ? null : (
             <Button
               variant="outlined"
               color="error"
@@ -113,6 +120,22 @@ export default function RegisteredEventCard({
             </Button>
           )}
         </div>
+      )}
+      {shift && shift.clockIn && (
+        <p className="text-left text-sm text-gray-300 mt-3">
+          Check-In:
+          <span className="text-white mx-1">
+            {formatEventTime(shift.clockIn)}
+          </span>
+        </p>
+      )}
+      {shift && shift.clockOut && (
+        <p className="text-left text-sm text-gray-300 mt-1">
+          Check-Out:
+          <span className="text-white mx-1">
+            {formatEventTime(shift.clockOut)}
+          </span>
+        </p>
       )}
       {registration && (
         <UnregisterDialog
@@ -157,7 +180,7 @@ function UnregisterDialog({
         setLoading(true);
         const { data } = await axios.post<ApiRegistrationCancelRequestResponse>(
           `/api/registrations/${registrationId}/cancelRequest`,
-          { reason }
+          { reason },
         );
         onUpdate(data);
         showSuccess('Anfrage gesendet');

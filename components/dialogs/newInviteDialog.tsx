@@ -10,6 +10,7 @@ import {
 import { useState } from 'react';
 import DialogTransition from './transition';
 import axios from 'axios';
+import { showError } from '@/lib/toast';
 
 type NewInviteDialogProps = {
   open: boolean;
@@ -30,12 +31,13 @@ export default function NewInviteDialog({
     try {
       const { data } = await axios.post<ApiPostInvitesResponse>(
         '/api/invites',
-        { email }
+        { email },
       );
       onCreate(data);
       handleClose();
     } catch (error) {
       console.error('Error creating invite:', error);
+      showError('Benutzer konnte nicht eingeladen werden');
     } finally {
       setLoading(false);
     }

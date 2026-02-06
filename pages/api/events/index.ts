@@ -6,7 +6,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
@@ -18,7 +18,7 @@ export default async function handle(
     await handlePOST(req, res);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -45,7 +45,15 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse) {
 export type ApiPostEventResponse = Prisma.EventGetPayload<{}>;
 
 async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
-  const { name, date, startTime, endTime, peopleRequired } = req.body;
+  const {
+    name,
+    date,
+    startTime,
+    endTime,
+    peopleRequired,
+    setupRequired,
+    teardownRequired,
+  } = req.body;
   if (!name || !date || !startTime || !endTime || !peopleRequired) {
     return res.status(400).json('Invalid request');
   }
@@ -57,6 +65,8 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
       startTime: new Date(startTime),
       endTime: new Date(endTime),
       peopleRequired,
+      setupRequired,
+      teardownRequired,
     },
   });
 
@@ -70,7 +80,7 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
       users.map((u) => u.email),
       event.id,
       event.name,
-      event.date.toLocaleDateString('de-DE')
+      event.date.toLocaleDateString('de-DE'),
     );
   }
 

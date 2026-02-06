@@ -10,6 +10,8 @@ import {
   InputAdornment,
   DialogActions,
   Button,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import axios from 'axios';
 import { Session } from '@/hooks/useSession';
@@ -37,7 +39,7 @@ export default function AdminEventsPage({ session }: { session: Session }) {
   const fetchEvents = async () => {
     const res = await axios.get<ApiGetEventsResponse>('/api/events');
     const sorted = res.data.sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
     setLoading(false);
     setEvents(sorted);
@@ -45,7 +47,7 @@ export default function AdminEventsPage({ session }: { session: Session }) {
 
   const updateEvents = (event: ApiPutEventAdminResponse) => {
     setEvents((prev) =>
-      prev.map((e) => (e.id == event.id ? { ...e, ...event } : e))
+      prev.map((e) => (e.id == event.id ? { ...e, ...event } : e)),
     );
   };
 
@@ -128,6 +130,9 @@ function EventCard({
     onDelete(event.id);
   }
 
+  const sReq = event.setupRequired;
+  const tReq = event.teardownRequired;
+
   return (
     <Grid size={{ xs: 12, sm: 6 }}>
       <Box className="rounded-2xl bg-gray-100 border border-gray-200 p-6">
@@ -144,6 +149,12 @@ function EventCard({
           {event._count.registrations}/{event.peopleRequired} Personen
           eingetragen
         </p>
+        {Boolean(sReq || tReq) && (
+          <p className="text-sm text-gray-700 mb-2">
+            Team benötigt für{' '}
+            {sReq && tReq ? 'Auf- und Abbau' : sReq ? 'Aufbau' : 'Abbau'}
+          </p>
+        )}
         <div className="flex flex-col gap-2 mt-4">
           <Button
             variant="contained"
@@ -210,6 +221,8 @@ function NewEventDialog({
   const [endTime, setEndTime] = useState('');
   const [endTimeDT, setEndTimeDT] = useState('');
   const [peopleRequired, setPeopleRequired] = useState('8');
+  const [setupRequired, setSetupRequired] = useState(true);
+  const [teardownRequired, setTeardownRequired] = useState(true);
 
   const [loading, setLoading] = useState(false);
 
@@ -223,12 +236,16 @@ function NewEventDialog({
         startTime: startTimeDT,
         endTime: endTimeDT,
         peopleRequired: Number(peopleRequired),
+        setupRequired,
+        teardownRequired,
       });
       setName('');
       setDate('');
       setStartTime('');
       setEndTime('');
       setPeopleRequired('8');
+      setSetupRequired(true);
+      setTeardownRequired(true);
       showSuccess('Veranstaltung erfolgreich erstellt');
       onSuccess();
       onClose();
@@ -286,6 +303,26 @@ function NewEventDialog({
             },
           }}
         />
+        <div className="flex flex-col gap-1">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={setupRequired}
+                onChange={(e) => setSetupRequired(e.target.checked)}
+              />
+            }
+            label="Aufbau benötigt"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={teardownRequired}
+                onChange={(e) => setTeardownRequired(e.target.checked)}
+              />
+            }
+            label="Abbau benötigt"
+          />
+        </div>
       </DialogContent>
       <DialogActions sx={{ px: 4, pb: 3 }}>
         <Button fullWidth onClick={onClose}>
@@ -319,30 +356,34 @@ function EditEventDialog({
 }) {
   const [name, setName] = useState(event.name);
   const [date, setDate] = useState(
-    new Date(event.date).toISOString().split('T')[0]
+    new Date(event.date).toISOString().split('T')[0],
   );
   const [startTime, setStartTime] = useState(
     new Date(event.startTime).toLocaleTimeString('de-DE', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-    })
+    }),
   );
   const [startTimeDT, setStartTimeDT] = useState(
-    new Date(event.startTime).toISOString()
+    new Date(event.startTime).toISOString(),
   );
   const [endTime, setEndTime] = useState(
     new Date(event.endTime).toLocaleTimeString('de-DE', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-    })
+    }),
   );
   const [endTimeDT, setEndTimeDT] = useState(
-    new Date(event.endTime).toISOString()
+    new Date(event.endTime).toISOString(),
   );
   const [peopleRequired, setPeopleRequired] = useState(
-    event.peopleRequired.toString()
+    event.peopleRequired.toString(),
+  );
+  const [setupRequired, setSetupRequired] = useState(event.setupRequired);
+  const [teardownRequired, setTeardownRequired] = useState(
+    event.teardownRequired,
   );
   const [loading, setLoading] = useState(false);
 
@@ -358,7 +399,9 @@ function EditEventDialog({
           startTime: startTimeDT,
           endTime: endTimeDT,
           peopleRequired: Number(peopleRequired),
-        }
+          setupRequired,
+          teardownRequired,
+        },
       );
       showSuccess('Veranstaltung erfolgreich aktualisiert');
       onUpdate(data);
@@ -411,6 +454,26 @@ function EditEventDialog({
             },
           }}
         />
+        <div className="flex flex-col gap-1">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={setupRequired}
+                onChange={(e) => setSetupRequired(e.target.checked)}
+              />
+            }
+            label="Aufbau benötigt"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={teardownRequired}
+                onChange={(e) => setTeardownRequired(e.target.checked)}
+              />
+            }
+            label="Abbau benötigt"
+          />
+        </div>
       </DialogContent>
       <DialogActions sx={{ px: 4, pb: 3 }}>
         <Button fullWidth onClick={onClose}>

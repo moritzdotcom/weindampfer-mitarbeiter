@@ -42,15 +42,17 @@ model ResetPasswordToken {
 }
 
 model Event {
-  id             String         @id @default(uuid())
-  name           String
-  date           DateTime
-  startTime      DateTime
-  endTime        DateTime
-  peopleRequired Int
-  totalTip       Int?
-  createdAt      DateTime       @default(now())
-  registrations  Registration[]
+  id               String         @id @default(uuid())
+  name             String
+  date             DateTime
+  startTime        DateTime
+  endTime          DateTime
+  peopleRequired   Int
+  setupRequired    Boolean        @default(false)
+  teardownRequired Boolean        @default(false)
+  totalTip         Int?
+  createdAt        DateTime       @default(now())
+  registrations    Registration[]
 }
 
 model Registration {

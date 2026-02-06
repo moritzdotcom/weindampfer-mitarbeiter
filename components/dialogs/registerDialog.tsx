@@ -16,14 +16,14 @@ import { ApiPostRegistrationResponse } from '@/pages/api/registrations';
 type RegisterDialogProps = {
   open: boolean;
   onClose: () => void;
-  eventId: string;
+  event: { id: string; setupRequired: boolean; teardownRequired: boolean };
   onRegister: (registration: ApiPostRegistrationResponse) => void;
 };
 
 export default function RegisterDialog({
   open,
   onClose,
-  eventId,
+  event,
   onRegister,
 }: RegisterDialogProps) {
   const [helpsSetup, setHelpsSetup] = useState(false);
@@ -36,10 +36,10 @@ export default function RegisterDialog({
       const { data } = await axios.post<ApiPostRegistrationResponse>(
         '/api/registrations',
         {
-          eventId,
+          eventId: event.id,
           helpsSetup,
           helpsTeardown,
-        }
+        },
       );
       showSuccess('Erfolgreich für das Event eingetragen');
       onRegister(data);
@@ -64,30 +64,41 @@ export default function RegisterDialog({
       open={open}
       onClose={handleClose}
       fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            background: 'var(--color-neutral-800)',
+          },
+        },
+      }}
     >
       <DialogTitle sx={{ textAlign: 'center', fontWeight: 600 }}>
         Für Event eintragen
       </DialogTitle>
       <DialogContent>
         <div className="flex flex-col gap-4 mt-2 mb-4">
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={helpsSetup}
-                onChange={(e) => setHelpsSetup(e.target.checked)}
-              />
-            }
-            label="Ich helfe beim Aufbau"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={helpsTeardown}
-                onChange={(e) => setHelpsTeardown(e.target.checked)}
-              />
-            }
-            label="Ich helfe beim Abbau"
-          />
+          {event.setupRequired && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={helpsSetup}
+                  onChange={(e) => setHelpsSetup(e.target.checked)}
+                />
+              }
+              label="Ich helfe beim Aufbau"
+            />
+          )}
+          {event.teardownRequired && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={helpsTeardown}
+                  onChange={(e) => setHelpsTeardown(e.target.checked)}
+                />
+              }
+              label="Ich helfe beim Abbau"
+            />
+          )}
         </div>
         <DialogActions
           sx={{ flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: 1 }}

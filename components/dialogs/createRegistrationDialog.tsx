@@ -24,7 +24,13 @@ import { showError, showSuccess } from '@/lib/toast';
 
 type CreateRegistrationDialogProps = {
   open: boolean;
-  event: { id: string; name: string; date: Date };
+  event: {
+    id: string;
+    name: string;
+    date: Date;
+    setupRequired: boolean;
+    teardownRequired: boolean;
+  };
   disabledUserIds: string[];
   onClose: () => void;
   onCreate: (shift: ApiCreateRegistrationForUserResponse) => void;
@@ -61,7 +67,7 @@ export default function CreateRegistrationDialog({
           helpsTeardown,
           clockIn: new Date(clockInDT),
           clockOut: new Date(clockOutDT),
-        }
+        },
       );
       onCreate(data);
       showSuccess('Registrierung hinzugefügt');
@@ -175,26 +181,32 @@ export default function CreateRegistrationDialog({
           </Select>
         </FormControl>
 
-        <div className="flex flex-col gap-4 mt-2 mb-4">
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={helpsSetup}
-                onChange={(e) => setHelpsSetup(e.target.checked)}
+        {Boolean(event.setupRequired || event.teardownRequired) && (
+          <div className="flex flex-col gap-4 mt-2 mb-4">
+            {event.setupRequired && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={helpsSetup}
+                    onChange={(e) => setHelpsSetup(e.target.checked)}
+                  />
+                }
+                label="Hilft beim Aufbau"
               />
-            }
-            label="Hilft beim Aufbau"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={helpsTeardown}
-                onChange={(e) => setHelpsTeardown(e.target.checked)}
+            )}
+            {event.teardownRequired && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={helpsTeardown}
+                    onChange={(e) => setHelpsTeardown(e.target.checked)}
+                  />
+                }
+                label="Hilft beim Abbau"
               />
-            }
-            label="Hilft beim Abbau"
-          />
-        </div>
+            )}
+          </div>
+        )}
         <p className="text-lg my-3">Arbeitszeiten</p>
         <TimeRangePicker
           date={new Date(event.date).toISOString().split('T')[0]}

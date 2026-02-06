@@ -6,7 +6,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
@@ -24,7 +24,7 @@ export default async function handle(
     await handleDELETE(req, res, eventId);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -43,7 +43,7 @@ export type ApiGetEventAdminResponse = Prisma.EventGetPayload<{
 async function handleGET(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const event = await prisma.event.findUnique({
     where: { id },
@@ -68,7 +68,7 @@ export type ApiPutEventAdminResponse = Prisma.EventGetPayload<{}>;
 async function handlePUT(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const event = await prisma.event.update({
     where: { id },
@@ -79,6 +79,8 @@ async function handlePUT(
       endTime: req.body.endTime ? new Date(req.body.endTime) : undefined,
       peopleRequired: req.body.peopleRequired,
       totalTip: req.body.totalTip,
+      setupRequired: req.body.setupRequired,
+      teardownRequired: req.body.teardownRequired,
     },
   });
   return res.json(event);
@@ -87,7 +89,7 @@ async function handlePUT(
 async function handleDELETE(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const event = await prisma.event.delete({
     where: { id },
@@ -102,7 +104,7 @@ async function handleDELETE(
   await sendEventCanceledMail(
     emails,
     event.name,
-    event.date.toLocaleDateString('de-DE')
+    event.date.toLocaleDateString('de-DE'),
   );
   return res.json(event);
 }
