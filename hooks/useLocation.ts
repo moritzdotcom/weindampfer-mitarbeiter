@@ -13,7 +13,7 @@ export default function useLocation() {
       (err) => {
         setError(err);
         setLocation(null);
-      }
+      },
     );
   };
 

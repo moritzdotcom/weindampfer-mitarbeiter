@@ -6,7 +6,6 @@ import EventCardAnimationWrapper from './cardAnimationWrapper';
 import { Session } from '@/hooks/useSession';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
-import useLocation from '@/hooks/useLocation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { showError, showSuccess } from '@/lib/toast';
@@ -43,7 +42,8 @@ export default function CurrentEventCard({
   onCheckIn,
   onCheckOut,
 }: CurrentEventCardProps) {
-  const { location, getLocation, error } = useLocation();
+  const [locationError, setLocationError] =
+    useState<GeolocationPositionError | null>(null);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -55,19 +55,30 @@ export default function CurrentEventCard({
   );
 
   const checkInInit = async () => {
+    if (checkingIn || !registration) return;
+
+    setLocationError(null);
     setCheckingIn(true);
-    getLocation();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        checkIn(position);
+      },
+      (err) => {
+        setLocationError(err);
+        checkIn();
+      },
+      { enableHighAccuracy: false },
+    );
   };
 
-  const checkIn = async () => {
-    if (!location || !registration) return;
-
+  const checkIn = async (location?: GeolocationPosition) => {
+    if (!registration) return;
     try {
       const { data } = await axios.post<ApiPostShiftResponse>(`/api/shifts`, {
         registrationId: registration.id,
         clockIn: new Date(),
-        clockInLat: location.coords.latitude,
-        clockInLon: location.coords.longitude,
+        clockInLat: location?.coords?.latitude ?? null,
+        clockInLon: location?.coords?.longitude ?? null,
       });
       onCheckIn(data);
       setCheckingIn(false);
@@ -82,19 +93,21 @@ export default function CurrentEventCard({
   const checkOutInit = async () => {
     setCheckingOut(true);
     setSignatureOpen(true);
-    getLocation();
   };
 
-  const checkOut = async (sigDataUrl: string) => {
-    if (!location || !registration?.shift) return;
+  const checkOut = async (
+    sigDataUrl: string,
+    location?: GeolocationPosition,
+  ) => {
+    if (!registration?.shift) return;
 
     try {
       const { data } = await axios.put<ApiPutShiftResponse>(
         `/api/shifts/${registration.shift.id}`,
         {
           clockOut: new Date(),
-          clockOutLat: location.coords.latitude,
-          clockOutLon: location.coords.longitude,
+          clockOutLat: location?.coords?.latitude || null,
+          clockOutLon: location?.coords?.longitude || null,
           checkoutSignatureDataUrl: sigDataUrl,
         },
       );
@@ -111,33 +124,32 @@ export default function CurrentEventCard({
   };
 
   useEffect(() => {
-    if (location && registration && checkingIn) {
-      checkIn();
+    if (registration?.shift && checkingOut && signatureDataUrl) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          checkOut(signatureDataUrl, position);
+        },
+        (err) => {
+          setLocationError(err);
+          checkOut(signatureDataUrl);
+        },
+        { enableHighAccuracy: false },
+      );
     }
-  }, [location, registration, checkingIn]);
+  }, [registration?.shift, checkingOut, signatureDataUrl]);
 
   useEffect(() => {
-    if (location && registration?.shift && checkingOut && signatureDataUrl) {
-      checkOut(signatureDataUrl);
-    }
-  }, [location, registration?.shift, checkingOut, signatureDataUrl]);
-
-  useEffect(() => {
-    if (error) {
-      console.error('Location error:', error);
-      if (error.code == 1) {
+    if (locationError) {
+      console.error('Location error:', locationError);
+      if (locationError.code == 1) {
         showError(
-          'Du hast den Zugriff auf deinen Standort blockiert. Bitte aktiviere ihn in den Browser-Einstellungen, um diese Funktion nutzen zu können.',
+          'Du hast den Zugriff auf deinen Standort blockiert. Bitte aktiviere ihn in den Browser-Einstellungen.',
         );
       } else {
-        showError(
-          'Fehler beim Abrufen des Standorts. Bitte versuche es erneut.',
-        );
+        showError('Fehler beim Abrufen des Standorts.');
       }
-      setCheckingIn(false);
-      setCheckingOut(false);
     }
-  }, [error]);
+  }, [locationError]);
 
   return (
     <EventCardAnimationWrapper>
@@ -244,7 +256,6 @@ export default function CurrentEventCard({
           onConfirm={(dataUrl) => {
             setSignatureOpen(false);
             setSignatureDataUrl(dataUrl);
-            getLocation(); // erst jetzt
           }}
         />
       </div>
