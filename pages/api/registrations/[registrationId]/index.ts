@@ -14,9 +14,6 @@ export default async function handle(
 
   if (req.method === 'GET') {
     await handleGET(req, res, session.id);
-  } else if (req.method === 'PUT') {
-    if (session.role !== 'ADMIN') return res.status(403).json('Forbidden');
-    await handlePUT(req, res);
   } else if (req.method === 'DELETE') {
     if (session.role !== 'ADMIN') return res.status(403).json('Forbidden');
     await handleDELETE(req, res);
@@ -70,27 +67,6 @@ async function handleGET(
             },
           },
         },
-      },
-    },
-  });
-  return res.status(201).json(registration);
-}
-
-async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
-  const { status } = req.body;
-  const registrationId = req.query.registrationId as string;
-  if (!registrationId)
-    return res.status(400).json('Registration ID is required');
-
-  const registration = await prisma.registration.update({
-    where: { id: registrationId },
-    data: {
-      status: 'CANCEL_REQUESTED',
-    },
-    include: {
-      shift: true,
-      user: {
-        select: { id: true, name: true, image: true },
       },
     },
   });
