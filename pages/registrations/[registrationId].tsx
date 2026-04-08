@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowBackIos } from '@mui/icons-material';
+import { ArrowBackIos, Close } from '@mui/icons-material';
 import { Session } from '@/hooks/useSession';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import axios from 'axios';
-import { Avatar, CircularProgress, Divider } from '@mui/material';
+import { Avatar, CircularProgress, Divider, IconButton } from '@mui/material';
 import { ApiGetRegistrationResponse } from '../api/registrations/[registrationId]';
 import { GetServerSidePropsContext } from 'next';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { formatEventDate, formatEventTime } from '@/lib/event';
+import { ConfirmDialog } from '@/components/dialogs/confirmDialog';
 
 export default function RegistrationPage({
   session,
@@ -21,11 +22,37 @@ export default function RegistrationPage({
   useAuthGuard(session);
   const [registration, setRegistration] =
     useState<ApiGetRegistrationResponse>();
+  const [deleteRegistrationId, setDeleteRegistrationId] = useState<
+    string | null
+  >(null);
+
+  function handleClickDelete(registrationId: string) {
+    setDeleteRegistrationId(registrationId);
+  }
+
+  async function onDelete() {
+    const registrationId = deleteRegistrationId;
+    if (!registrationId) return;
+    await axios.delete(`/api/registrations/${registrationId}`);
+    setRegistration((prev) => {
+      if (!prev) return;
+      return {
+        ...prev,
+        event: {
+          ...prev.event,
+          registrations: prev.event.registrations.filter(
+            (r) => r.id !== registrationId,
+          ),
+        },
+      };
+    });
+    setDeleteRegistrationId(null);
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await axios.get<ApiGetRegistrationResponse>(
-        `/api/registrations/${registrationId}`
+        `/api/registrations/${registrationId}`,
       );
       setRegistration(data);
     };
@@ -69,43 +96,58 @@ export default function RegistrationPage({
                 return (
                   <div
                     key={r.user.id}
-                    className={`flex items-center gap-4 bg-neutral-800 rounded-xl p-3 shadow ${
+                    className={`flex items-center justify-between bg-neutral-800 rounded-xl p-3 shadow ${
                       isMe ? 'border border-amber-500' : ''
                     }`}
                   >
-                    <Avatar
-                      src={r.user.image || undefined}
-                      alt={r.user.name}
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        bgcolor: 'var(--color-gray-400)',
-                      }}
-                    >
-                      {r.user.name?.[0]?.toUpperCase() || '👤'}
-                    </Avatar>
+                    <div className="flex items-center gap-4">
+                      <Avatar
+                        src={r.user.image || undefined}
+                        alt={r.user.name}
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          bgcolor: 'var(--color-gray-400)',
+                        }}
+                      >
+                        {r.user.name?.[0]?.toUpperCase() || '👤'}
+                      </Avatar>
 
-                    <div className="flex-1">
-                      <p className="text-white text-lg font-medium">
-                        {r.user.name} {isMe && '(Du)'}
-                      </p>
-                      <div className="text-sm text-gray-400 flex gap-2">
-                        {r.helpsSetup && (
-                          <span className="mt-1.5 px-2.5 py-0.5 bg-green-900/40 rounded-full text-green-300">
-                            Aufbau
-                          </span>
-                        )}
-                        {r.helpsTeardown && (
-                          <span className="mt-1.5 px-2.5 py-0.5 bg-blue-900/40 rounded-full text-blue-300">
-                            Abbau
-                          </span>
-                        )}
+                      <div className="flex-1">
+                        <p className="text-white text-lg font-medium">
+                          {r.user.name} {isMe && '(Du)'}
+                        </p>
+                        <div className="text-sm text-gray-400 flex gap-2">
+                          {r.helpsSetup && (
+                            <span className="mt-1.5 px-2.5 py-0.5 bg-green-900/40 rounded-full text-green-300">
+                              Aufbau
+                            </span>
+                          )}
+                          {r.helpsTeardown && (
+                            <span className="mt-1.5 px-2.5 py-0.5 bg-blue-900/40 rounded-full text-blue-300">
+                              Abbau
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    {session.user.role === 'ADMIN' && (
+                      <IconButton
+                        onClick={() => handleClickDelete(r.id)}
+                        color="error"
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
                   </div>
                 );
               })}
           </div>
+          <ConfirmDialog
+            onClose={() => setDeleteRegistrationId(null)}
+            open={!!deleteRegistrationId}
+            onConfirm={onDelete}
+          />
         </div>
       ) : (
         <div className="w-full flex justify-center mt-10">

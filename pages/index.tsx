@@ -199,6 +199,7 @@ export default function Home({ session }: { session: Session }) {
                   <UpcomingEventCard
                     key={event.id}
                     event={event}
+                    session={session}
                     onRegister={onRegister}
                   />
                 ))}

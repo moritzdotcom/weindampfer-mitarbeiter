@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowBackIos } from '@mui/icons-material';
+import { ArrowBackIos, Close } from '@mui/icons-material';
 import { Session } from '@/hooks/useSession';
 import axios from 'axios';
-import { Avatar, Button, CircularProgress, Divider } from '@mui/material';
+import {
+  Avatar,
+  Button,
+  CircularProgress,
+  Divider,
+  IconButton,
+} from '@mui/material';
 import { GetServerSidePropsContext } from 'next';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -14,6 +20,7 @@ import { ApiPostRegistrationResponse } from '../api/registrations';
 import HtmlHead from '@/components/head';
 import prisma from '@/lib/prismadb';
 import { showInfo } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/dialogs/confirmDialog';
 
 export default function EventPage({
   session,
@@ -26,6 +33,9 @@ export default function EventPage({
 }) {
   const [event, setEvent] = useState<ApiGetEventResponse>();
   const [open, setOpen] = useState(false);
+  const [deleteRegistrationId, setDeleteRegistrationId] = useState<
+    string | null
+  >(null);
 
   const registration = event?.registrations.find(
     (r) => r.user.id === session?.user?.id,
@@ -49,6 +59,26 @@ export default function EventPage({
       };
     });
   };
+
+  function handleClickDelete(registrationId: string) {
+    setDeleteRegistrationId(registrationId);
+  }
+
+  async function onDelete() {
+    const registrationId = deleteRegistrationId;
+    if (!registrationId) return;
+    await axios.delete(`/api/registrations/${registrationId}`);
+    setEvent((prev) => {
+      if (!prev) return;
+      return {
+        ...prev,
+        registrations: prev.registrations.filter(
+          (r) => r.id !== registrationId,
+        ),
+      };
+    });
+    setDeleteRegistrationId(null);
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,39 +131,49 @@ export default function EventPage({
                 return (
                   <div
                     key={r.user.id}
-                    className={`flex items-center gap-4 bg-neutral-800 rounded-xl p-3 shadow ${
+                    className={`flex items-center justify-between bg-neutral-800 rounded-xl p-3 shadow ${
                       isMe ? 'border border-amber-500' : ''
                     }`}
                   >
-                    <Avatar
-                      src={r.user.image || undefined}
-                      alt={r.user.name}
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        bgcolor: 'var(--color-gray-400)',
-                      }}
-                    >
-                      {r.user.name?.[0]?.toUpperCase() || '👤'}
-                    </Avatar>
+                    <div className="flex items-center gap-4">
+                      <Avatar
+                        src={r.user.image || undefined}
+                        alt={r.user.name}
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          bgcolor: 'var(--color-gray-400)',
+                        }}
+                      >
+                        {r.user.name?.[0]?.toUpperCase() || '👤'}
+                      </Avatar>
 
-                    <div className="flex-1">
-                      <p className="text-white text-lg font-medium">
-                        {r.user.name} {isMe && '(Du)'}
-                      </p>
-                      <div className="text-sm text-gray-400 flex gap-2">
-                        {r.helpsSetup && (
-                          <span className="mt-1.5 px-2.5 py-0.5 bg-green-900/40 rounded-full text-green-300">
-                            Aufbau
-                          </span>
-                        )}
-                        {r.helpsTeardown && (
-                          <span className="mt-1.5 px-2.5 py-0.5 bg-blue-900/40 rounded-full text-blue-300">
-                            Abbau
-                          </span>
-                        )}
+                      <div className="flex-1">
+                        <p className="text-white text-lg font-medium">
+                          {r.user.name} {isMe && '(Du)'}
+                        </p>
+                        <div className="text-sm text-gray-400 flex gap-2">
+                          {r.helpsSetup && (
+                            <span className="mt-1.5 px-2.5 py-0.5 bg-green-900/40 rounded-full text-green-300">
+                              Aufbau
+                            </span>
+                          )}
+                          {r.helpsTeardown && (
+                            <span className="mt-1.5 px-2.5 py-0.5 bg-blue-900/40 rounded-full text-blue-300">
+                              Abbau
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    {session.user.role === 'ADMIN' && (
+                      <IconButton
+                        onClick={() => handleClickDelete(r.id)}
+                        color="error"
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
                   </div>
                 );
               })}
@@ -165,6 +205,11 @@ export default function EventPage({
               />
             </div>
           )}
+          <ConfirmDialog
+            onClose={() => setDeleteRegistrationId(null)}
+            open={!!deleteRegistrationId}
+            onConfirm={onDelete}
+          />
         </div>
       ) : (
         <div className="w-full flex justify-center mt-10">

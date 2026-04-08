@@ -7,8 +7,10 @@ import { ApiPostRegistrationResponse } from '@/pages/api/registrations';
 import RegisterDialog from '../dialogs/registerDialog';
 import UserAvatar from '../userAvatar';
 import { showInfo } from '@/lib/toast';
+import { Session } from '@/hooks/useSession';
 
 type UpcomingEventCardProps = {
+  session: Session;
   event: {
     id: string;
     name: string;
@@ -25,6 +27,7 @@ type UpcomingEventCardProps = {
 };
 
 export default function UpcomingEventCard({
+  session,
   event,
   onRegister,
 }: UpcomingEventCardProps) {
@@ -73,18 +76,26 @@ export default function UpcomingEventCard({
         {event.registrations.length}/{event.peopleRequired} Personen eingetragen
       </p>
 
-      <Button
-        variant="contained"
-        fullWidth
-        sx={{
-          backgroundColor: '#ffffff',
-          color: '#111111',
-          '&:hover': { backgroundColor: '#dddddd' },
-        }}
-        onClick={handleClickRegister}
-      >
-        Für Event eintragen
-      </Button>
+      <div className="flex flex-col gap-3">
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{
+            backgroundColor: '#ffffff',
+            color: '#111111',
+            '&:hover': { backgroundColor: '#dddddd' },
+          }}
+          onClick={handleClickRegister}
+        >
+          Für Event eintragen
+        </Button>
+
+        {session.user.role === 'ADMIN' && (
+          <Button variant="outlined" fullWidth href={`/events/${event.id}`}>
+            Event ansehen
+          </Button>
+        )}
+      </div>
 
       <RegisterDialog
         open={open}
