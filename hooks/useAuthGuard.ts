@@ -5,7 +5,7 @@ import { UserRole } from '@/generated/prisma';
 
 export function useAuthGuard(
   session: Session,
-  requiredRole: UserRole = 'USER'
+  requiredRole: UserRole = 'USER',
 ) {
   const router = useRouter();
 
@@ -24,7 +24,7 @@ export function useAuthGuard(
       router.push('/auth/login');
     } else if (
       session.status === 'authenticated' &&
-      !validateRole(session.user.role, requiredRole)
+      !validateRole(session.user?.role, requiredRole)
     ) {
       router.push('/');
     }

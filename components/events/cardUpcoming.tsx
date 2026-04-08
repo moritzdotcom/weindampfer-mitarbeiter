@@ -90,7 +90,7 @@ export default function UpcomingEventCard({
           Für Event eintragen
         </Button>
 
-        {session.user.role === 'ADMIN' && (
+        {session?.user?.role === 'ADMIN' && (
           <Button variant="outlined" fullWidth href={`/events/${event.id}`}>
             Event ansehen
           </Button>

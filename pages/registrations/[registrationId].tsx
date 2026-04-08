@@ -131,7 +131,7 @@ export default function RegistrationPage({
                         </div>
                       </div>
                     </div>
-                    {session.user.role === 'ADMIN' && (
+                    {session?.user?.role === 'ADMIN' && (
                       <IconButton
                         onClick={() => handleClickDelete(r.id)}
                         color="error"
