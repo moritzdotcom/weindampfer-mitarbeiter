@@ -20,6 +20,7 @@ model User {
   name               String
   password           String
   image              String?
+  active             Boolean              @default(true)
   role               UserRole             @default(USER)
   sessions           Session[]
   createdAt          DateTime             @default(now())

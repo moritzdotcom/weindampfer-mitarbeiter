@@ -35,7 +35,7 @@ export default function AdminUserCard({
     <div
       className={`bg-neutral-800 text-white rounded-2xl p-4 flex flex-wrap items-center gap-4 justify-between shadow-md border ${
         user.role === 'ADMIN' ? 'border-yellow-500' : 'border-neutral-700'
-      }`}
+      } ${user.active ? 'opacity-100' : 'opacity-60'}`}
     >
       {/* User Info */}
       <div className="flex items-center space-x-4">
@@ -64,7 +64,7 @@ export default function AdminUserCard({
       </div>
 
       {/* Aktionen */}
-      {user.role !== 'ADMIN' && (
+      {user.role !== 'ADMIN' && user.active && (
         <div className="flex gap-2 items-center space-x-2">
           <IconButton onClick={() => setEditOpen(true)} sx={{ color: 'white' }}>
             <EditIcon />
@@ -91,7 +91,10 @@ export default function AdminUserCard({
       <ConfirmDialog
         open={deactivateOpen}
         onClose={() => setDeactivateOpen(false)}
-        onConfirm={onDeactivate}
+        onConfirm={() => {
+          onDeactivate();
+          setDeactivateOpen(false);
+        }}
         title="Benutzer deaktivieren?"
         description={`Möchtest du ${user.name} wirklich deaktivieren?`}
       />
@@ -142,7 +145,7 @@ export function UserEditDialog({
         {
           name,
           email,
-        }
+        },
       );
       onSave(data);
       showSuccess('Benutzer erfolgreich aktualisiert');

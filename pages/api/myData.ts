@@ -5,16 +5,17 @@ import { Prisma } from '@/generated/prisma';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
+  if (!session.active) return res.status(401).json('Not authorized');
 
   if (req.method === 'GET') {
     await handleGET(req, res, session.id);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -35,7 +36,7 @@ export type ApiGetMyDataResponse = Prisma.EventGetPayload<{
 async function handleGET(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const now = new Date();
   const yesterday = new Date(now);

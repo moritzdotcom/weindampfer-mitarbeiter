@@ -5,7 +5,7 @@ import { Prisma, UserRole } from '@/generated/prisma';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
@@ -20,7 +20,7 @@ export default async function handle(
     await handlePUT(req, res, userId);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -32,7 +32,7 @@ export type ApiGetUserResponse = Prisma.UserGetPayload<{
 async function handleGET(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const user = await prisma.user.findFirst({
     where: { id },
@@ -48,14 +48,15 @@ export type ApiUserPutResponse = {
   email: string;
   image: string | null;
   role: UserRole;
+  active: boolean;
 };
 
 async function handlePUT(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
-  const { name, email } = req.body;
+  const { name, email, active } = req.body;
 
   try {
     const user = await prisma.user.update({
@@ -63,6 +64,7 @@ async function handlePUT(
       data: {
         name: name || undefined,
         email: email || undefined,
+        active: active ?? undefined,
       },
       select: {
         id: true,
@@ -70,6 +72,7 @@ async function handlePUT(
         email: true,
         image: true,
         role: true,
+        active: true,
       },
     });
     return res.json(user);

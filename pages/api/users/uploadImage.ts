@@ -13,10 +13,11 @@ export const config = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json({ error: 'Not authenticated' });
+  if (!session.active) return res.status(401).json({ error: 'Not authorized' });
 
   const userId = session.id;
 

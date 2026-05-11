@@ -167,7 +167,9 @@ export default function CreateRegistrationDialog({
             }}
           >
             {users
-              .filter(({ id }) => !disabledUserIds.includes(id))
+              .filter(
+                ({ id, active }) => active && !disabledUserIds.includes(id),
+              )
               .map((user) => (
                 <MenuItem key={user.id} value={user.id}>
                   <ListItemIcon sx={{ minWidth: 36, mr: 2 }}>

@@ -5,7 +5,7 @@ import { UserRole } from '@/generated/prisma';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method === 'GET') {
     await handleGET(req, res);
@@ -15,7 +15,7 @@ export default async function handle(
     await handleDELETE(req, res);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -23,6 +23,8 @@ export default async function handle(
 async function handleGET(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
+  if (!session.active) return res.status(401).json('Not authorized');
+
   return res.json(session);
 }
 
@@ -38,7 +40,7 @@ export type ApiSessionPostResponse = {
 
 async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(401).json('Wrong credentials');
+  if (!email || !password) return res.status(401).json('Falsche Zugangsdaten');
 
   const user = await prisma.user.findFirst({
     where: {
@@ -49,6 +51,7 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
     },
   });
   if (user && user.password == hashPassword(password)) {
+    if (!user.active) return res.status(401).json('Account Deaktiviert');
     const session = await prisma.session.create({
       data: {
         user: { connect: user },
@@ -60,7 +63,7 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
     ]);
     return res.json({ ...user, password: undefined });
   }
-  return res.status(401).json('Wrong credentials');
+  return res.status(401).json('Falsche Zugangsdaten');
 }
 
 async function handleDELETE(req: NextApiRequest, res: NextApiResponse) {

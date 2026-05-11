@@ -5,10 +5,11 @@ import { Prisma } from '@/generated/prisma';
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
+  if (!session.active) return res.status(401).json('Not authorized');
 
   const userId = req.query.userId as string;
   const id = userId && session.role == 'ADMIN' ? userId : session.id;
@@ -19,7 +20,7 @@ export default async function handle(
     await handlePOST(req, res, session.id);
   } else {
     throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
+      `The HTTP ${req.method} method is not supported at this route.`,
     );
   }
 }
@@ -58,7 +59,7 @@ export type ApiGetRegistrationsResponse = Prisma.RegistrationGetPayload<{
 async function handleGET(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const registrations = await prisma.registration.findMany({
     where: { userId: id },
@@ -107,7 +108,7 @@ export type ApiPostRegistrationResponse = Prisma.RegistrationGetPayload<{
 async function handlePOST(
   req: NextApiRequest,
   res: NextApiResponse,
-  id: string
+  id: string,
 ) {
   const { eventId, helpsSetup, helpsTeardown } = req.body;
   if (!eventId) return res.status(400).json('Invalid request');

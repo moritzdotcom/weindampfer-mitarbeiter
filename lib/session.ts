@@ -13,7 +13,14 @@ export async function getServerSession(req: NextApiRequest) {
     where: { id: sessionId, userId },
     select: {
       user: {
-        select: { id: true, name: true, email: true, image: true, role: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          role: true,
+          active: true,
+        },
       },
     },
   });

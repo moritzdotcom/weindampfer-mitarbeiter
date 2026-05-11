@@ -11,6 +11,7 @@ export default async function handle(
 ) {
   const session = await getServerSession(req);
   if (!session) return res.status(401).json('Not authenticated');
+  if (!session.active) return res.status(401).json('Not authorized');
 
   if (req.method === 'GET') {
     await handleGET(req, res, session.id);

@@ -4,6 +4,7 @@ import ErrorMessage from '@/components/errorMessage';
 import Link from 'next/link';
 import { Session } from '@/hooks/useSession';
 import { TextField } from '@mui/material';
+import { isAxiosError } from 'axios';
 
 export default function LoginPage({ session }: { session: Session }) {
   const router = useRouter();
@@ -23,7 +24,11 @@ export default function LoginPage({ session }: { session: Session }) {
     try {
       await login(email, password);
     } catch (error) {
-      setSubmitError('Falsche Zugangsdaten');
+      if (isAxiosError(error)) {
+        setSubmitError(error.response?.data || 'Fehler beim Anmelden');
+      } else {
+        setSubmitError('Unbekannter Fehler');
+      }
     }
   };
 

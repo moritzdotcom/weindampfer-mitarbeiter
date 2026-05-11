@@ -20,11 +20,14 @@ export default function AdminUsersPage({ session }: { session: Session }) {
 
   const userSortingFn = (
     a: ApiGetUsersResponse[number],
-    b: ApiGetUsersResponse[number]
+    b: ApiGetUsersResponse[number],
   ) => {
     // 1. ADMINs zuerst
     if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
     if (a.role !== 'ADMIN' && b.role === 'ADMIN') return 1;
+
+    if (a.active && !b.active) return -1;
+    if (!a.active && b.active) return 1;
 
     // 2. Wenn gleiche Rolle: nach Name sortieren
     return a.name.localeCompare(b.name);
@@ -47,6 +50,13 @@ export default function AdminUsersPage({ session }: { session: Session }) {
       console.error('Error fetching invites:', error);
     }
   };
+
+  async function handleDeactivate(userId: string) {
+    await axios.put(`/api/users/${userId}`, { active: false });
+    setUsers((prev) =>
+      prev.map((p) => (p.id === userId ? { ...p, active: false } : p)),
+    );
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -92,12 +102,10 @@ export default function AdminUsersPage({ session }: { session: Session }) {
                     user={user}
                     onUpdate={(usr) =>
                       setUsers((prev) =>
-                        prev.map((p) => (p.id == usr.id ? usr : p))
+                        prev.map((p) => (p.id == usr.id ? usr : p)),
                       )
                     }
-                    onDeactivate={() =>
-                      setUsers((prev) => prev.filter((p) => p.id !== user.id))
-                    }
+                    onDeactivate={() => handleDeactivate(user.id)}
                   />
                 ))}
               </ul>
